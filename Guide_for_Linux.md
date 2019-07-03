@@ -26,8 +26,10 @@ We only need to install CUDA and openCV, so make sure that you have and only hav
 
 This step is pretty easy, but also **PLZ change download source of pip** if you are in special regions.
 
-Official installation guide is [here](https://tensorflow.google.cn/install/pip).
+Official installation guide is [here](https://tensorflow.google.cn/install/source).
 I strongely recommend choosing the stable one with GPU.
+
+PLZ **don't** install via pip.
 
 ## Install PoseCNN
 
