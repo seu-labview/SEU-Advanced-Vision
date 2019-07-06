@@ -3,7 +3,7 @@
 Since we haven't decided which OS to choose, I had to have tried both (Win10 and Ubuntu, of course).
 This document is for environment setting in Linux.
 
-## Install Ubuntu 18.04LTS
+## Install Ubuntu 16.04LTS
 
 RTFM and STFW, and U can do it. Attention, at least 30GB space of hard disk is needed.
 
@@ -11,6 +11,10 @@ RTFM and STFW, and U can do it. Attention, at least 30GB space of hard disk is n
 
 If you are in special regions, **PLZ change the downloading source**.
 I recommend using the built-in software *Software and Updates*(*软件与更新*）to change the source.
+
+## Install GPU driver
+
+Nvidia
 
 ## Install CUDA
 
@@ -28,6 +32,8 @@ This step is pretty easy, but also **PLZ change download source of pip** if you 
 
 Official installation guide is [here](https://tensorflow.google.cn/install/source).
 I strongely recommend choosing the stable one with GPU.
+
+You need to compile with [Bazel 10](https://docs.bazel.build/versions/master/install-ubuntu.html).
 
 PLZ **don't** install via pip.
 
