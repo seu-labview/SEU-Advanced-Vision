@@ -18,6 +18,15 @@ I recommend using the built-in software *Software and Updates*(*软件与更新*
 
 You can find this in the built-in software *Software and Updates*(*软件与更新*）.
 
+## Install GCC 4.8
+
+Normally you need to remove the original gcc, and install v4.8.
+
+```Bash
+sudo apt remove gcc
+sudo apt install gcc-4.8
+```
+
 ## Install CUDA 9.0 and cudNN 7.1.4
 
 PLZ PLZ install CUDA via *JetPack 3.3*!
