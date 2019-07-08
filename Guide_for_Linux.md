@@ -56,5 +56,9 @@ https://www.jianshu.com/p/a64bd41c585e
 
 ## Install PoseCNN
 
+To install [*Pangolin*](https://github.com/uoip/pangolin), you need to install glew first:`sudo apt-get install libglew-dev`
+
+Pangolin install guide can be seen at the official repo.
+
 ***
 TO BE CONTINUED
