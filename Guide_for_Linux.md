@@ -52,7 +52,7 @@ You need to compile with [Bazel 10](https://docs.bazel.build/versions/master/ins
 
 While setting configuration, I recommand to choose 'N' for all **except cuda**.
 
-
+https://www.jianshu.com/p/a64bd41c585e
 
 ## Install PoseCNN
 
