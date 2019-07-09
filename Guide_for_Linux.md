@@ -64,7 +64,16 @@ Pangolin install guide can be seen at the official repo.
 
 ### nanoflann
 
-Download the zip.
+Download the archive and unzip it at somewhere.
+
+```Bash
+#How to install a cmake project like nanoflann
+cd nanoflann-<version>
+mkdir build
+cmake ..
+make
+make install
+```
 
 ***
 TO BE CONTINUED
