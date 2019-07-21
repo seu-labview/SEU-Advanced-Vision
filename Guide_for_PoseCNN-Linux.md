@@ -1,4 +1,4 @@
-# Guide for Linux
+# Guide for PoseCNN on Linux
 
 Since we haven't decided which OS to choose, I had to have tried both (Win10 and Ubuntu, of course).
 This document is for environment setting in Linux.
