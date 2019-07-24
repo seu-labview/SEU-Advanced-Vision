@@ -29,18 +29,18 @@ void SEU::on_pushButton_clicked()
     QString tempStr;
     double x1=3;
     //得到这些参数的值；
-    ui->num->setText(tempStr.setNum(num));
-    ui->X1->setText(tempStr.setNum(x1));
+    ui->num->setText(tempStr.setNum(num));//获得识别物体的个数
+    ui->X1->setText(tempStr.setNum(x1));//物体1，2，3，4的x坐标
     ui->X2->setText(tempStr.setNum(x2));
     ui->X3->setText(tempStr.setNum(x3));
     ui->X4->setText(tempStr.setNum(x4));
 
-    ui->Y4->setText(tempStr.setNum(Y4));
+    ui->Y4->setText(tempStr.setNum(Y4));//物体1，2，3，4的y坐标
     ui->Y3->setText(tempStr.setNum(Y3));
     ui->Y2->setText(tempStr.setNum(Y2));
     ui->Y1->setText(tempStr.setNum(Y1));
 
-    ui->Angel1->setText(tempStr.setNum(a1));
+    ui->Angel1->setText(tempStr.setNum(a1));//物体1，2，3，4的Angel的
     ui->Angel2->setText(tempStr.setNum(a2));
     ui->Angel3->setText(tempStr.setNum(a3));
     ui->Angel4->setText(tempStr.setNum(a4));

@@ -25,10 +25,6 @@ public:
 private:
     Ui::SEU *ui;
 
-private slots:
-    void displayImage();
-    void saveTxt();
-
 
 };
 
