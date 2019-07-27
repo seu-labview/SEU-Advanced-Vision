@@ -7,4 +7,4 @@
 
 ## 神经网络
 
-前期选用[YOLO6D](https://github.com/microsoft/singleshotpose)
+前期选用[YOLO6D](https://github.com/seu-labview/singleshot6Dpose)
