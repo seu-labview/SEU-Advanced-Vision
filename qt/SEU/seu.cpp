@@ -16,7 +16,14 @@ SEU::SEU(QWidget *parent) :
 {
     ui->setupUi(this);
     connect(ui->pushButton_2,SIGNAL(clicked()),qApp,SLOT(on_pushButton_2_clicked()));
-
+    QList<QCameraInfo> list;
+    list=QCameraInfo::availableCameras();
+    for (int i=0;i<list.size();i++) {
+        qDebug()<<list.at(i).deviceName();
+        qDebug()<<list.at(i).description();
+        qDebug()<<list.at(i).position();
+        qDebug()<<"###########";
+    }
 }
 
 SEU::~SEU()
@@ -49,7 +56,8 @@ void SEU::on_pushButton_clicked()
     ui->Radius2->setText(tempStr.setNum(r2));
     ui->Radius3->setText(tempStr.setNum(r3));
     ui->Radius4->setText(tempStr.setNum(r4));
-    camera=new QCamera("@device:pnp:\\\\?\\usb#vid_8086&pid_0aa5&mi_00#7&2df25655&0&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\\global",this);
+    //camera=new QCamera("@device:pnp:\\\\?\\usb#vid_8086&pid_0aa5&mi_00#7&2df25655&0&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\\global",this);
+    camera=new QCamera(this);
     viewfinder=new QCameraViewfinder(this);
     ui->horizontalLayout->addWidget(viewfinder);
     ui->label_21->setScaledContents(true);
