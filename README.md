@@ -1,7 +1,7 @@
 # SEU-Advanced-Vision
-2019中国机器人大赛先进视觉3D测量项目
 
 ## 算法
+
 ### LINEMOD 数据集制作
 
 数据集制作工具[*ObjectDatasetTools*](https://github.com/seu-labview/ObjectDatasetTools)
