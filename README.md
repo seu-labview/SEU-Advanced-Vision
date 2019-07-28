@@ -17,3 +17,7 @@
 ## 接口
 
 使用*librealsense2*调用SR300
+
+## SR300 查看相机内参
+
+使用*rs-sensor-control*  [*细节*](https://blog.csdn.net/weixin_39585934/article/details/84147449)
