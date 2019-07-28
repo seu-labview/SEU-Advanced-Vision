@@ -213,7 +213,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusBar)
         self.pushButton.clicked.connect(self.open_camera)
         self.timer_camera = QtCore.QTimer()
-        self.timer_camera.timeout.connect(self.show_camera)
+        self.timer_camera.timeout.connect(self.open_camera)
         self.pushButton_2.clicked.connect(self.close_camera)
 
 
@@ -244,40 +244,68 @@ class Ui_MainWindow(object):
         self.label_31.setText(_translate("MainWindow", "目标4中心Y"))
         self.label_33.setText(_translate("MainWindow", "目标4朝向角Angle"))
         self.label_35.setText(_translate("MainWindow", "目标4距离Radius"))
+        global Y
+        Y = [0,1,2,3]
+        # global R[4]
+        # global A[4]
+        # global ID[4]
+        # global N=4
+        # global X[4]
 
     def open_camera(self):
         if self.timer_camera.isActive() == False:
-        #     self.capture = cv2.VideoCapture(1)
+            # self.capture = cv2.VideoCapture(1)
             self.timer_camera.start(100)
-        global pipeline
-        pipeline = rs.pipeline()
-        global config
-        config = rs.config()
-        config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-        config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
-        
-        # Start pipeline
-        profile = pipeline.start(config)
-        frames = pipeline.wait_for_frames()
-        color_frame = frames.get_color_frame()
+        global firsttime
+        if firsttime:
+            global pipeline
+            pipeline = rs.pipeline()
+            global config
+            config = rs.config()
+            config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+            config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+            
+            # Start pipeline
+            profile = pipeline.start(config)
+            frames = pipeline.wait_for_frames()
+            color_frame = frames.get_color_frame()
 
-        # Color Intrinsics 
-        intr = color_frame.profile.as_video_stream_profile().intrinsics
-        camera_parameters = {'fx': intr.fx, 'fy': intr.fy,
-                            'ppx': intr.ppx, 'ppy': intr.ppy,
-                            'height': intr.height, 'width': intr.width}
+            # Color Intrinsics 
+            intr = color_frame.profile.as_video_stream_profile().intrinsics
+            camera_parameters = {'fx': intr.fx, 'fy': intr.fy,
+                                'ppx': intr.ppx, 'ppy': intr.ppy,
+                                'height': intr.height, 'width': intr.width}
 
-        
-        with open(folder + 'intrinsics.json', 'w') as fp:
-            json.dump(camera_parameters, fp)
+            
+            with open(folder + 'intrinsics.json', 'w') as fp:
+                json.dump(camera_parameters, fp)
 
-        align_to = rs.stream.color
-        global align
-        align = rs.align(align_to)
-        # T_start = time.time()            
-        # FileName = 0
+            align_to = rs.stream.color
+            global align
+            align = rs.align(align_to)
+            # T_start = time.time()            
+            # FileName = 0
+            firsttime = False
+        _translate = QtCore.QCoreApplication.translate
+        # x=[0,1,2,3]
+        # self.X1.setText(_translate("MainWindow",str(X[0])))
+        # self.X2.setText(_translate("MainWindow",str(X[1])))
+        # self.X3.setText(_translate("MainWindow",str(X[2])))
+        # self.X4.setText(_translate("MainWindow",str(X[3])))
+        self.Y1.setText(_translate("MainWindow",str(Y[0])))
+        self.Y2.setText(_translate("MainWindow",str(Y[1])))
+        self.Y3.setText(_translate("MainWindow",str(Y[2])))
+        self.Y4.setText(_translate("MainWindow",str(Y[3])))
+        # self.R1.setText(_translate("MainWindow",str(R[0])))
+        # self.R2.setText(_translate("MainWindow",str(R[1])))
+        # self.R3.setText(_translate("MainWindow",str(R[2])))
+        # self.R4.setText(_translate("MainWindow",str(R[3])))
+        # self.A1.setText(_translate("MainWindow",str(A[0])))
+        # self.A2.setText(_translate("MainWindow",str(A[1])))
+        # self.A3.setText(_translate("MainWindow",str(A[2])))
+        # self.A4.setText(_translate("MainWindow",str(A[3])))
 
-    def show_camera(self):
+    # def show_camera(self):
         # while time.time() -T_start <= RECORD_LENGTH:
         frames = pipeline.wait_for_frames()
         aligned_frames = align.process(frames)
@@ -324,6 +352,8 @@ if __name__ == "__main__":
     make_directories(folder)
     global FileName
     FileName = 0
+    global firsttime
+    firsttime = True
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
