@@ -318,22 +318,22 @@ class Ui_MainWindow(object):
             # FileName = 0
             firsttime = False
         _translate = QtCore.QCoreApplication.translate
-        self.X1.setText(_translate("MainWindow",str(X[0])))
-        self.X2.setText(_translate("MainWindow",str(X[1])))
-        self.X3.setText(_translate("MainWindow",str(X[2])))
-        self.X4.setText(_translate("MainWindow",str(X[3])))
-        self.Y1.setText(_translate("MainWindow",str(Y[0])))
-        self.Y2.setText(_translate("MainWindow",str(Y[1])))
-        self.Y3.setText(_translate("MainWindow",str(Y[2])))
-        self.Y4.setText(_translate("MainWindow",str(Y[3])))
-        self.R1.setText(_translate("MainWindow",str(R[0])))
-        self.R2.setText(_translate("MainWindow",str(R[1])))
-        self.R3.setText(_translate("MainWindow",str(R[2])))
-        self.R4.setText(_translate("MainWindow",str(R[3])))
-        self.A1.setText(_translate("MainWindow",str(A[0])))
-        self.A2.setText(_translate("MainWindow",str(A[1])))
-        self.A3.setText(_translate("MainWindow",str(A[2])))
-        self.A4.setText(_translate("MainWindow",str(A[3])))
+        # self.X1.setText(_translate("MainWindow",str(X[0])))
+        # self.X2.setText(_translate("MainWindow",str(X[1])))
+        # self.X3.setText(_translate("MainWindow",str(X[2])))
+        # self.X4.setText(_translate("MainWindow",str(X[3])))
+        # self.Y1.setText(_translate("MainWindow",str(Y[0])))
+        # self.Y2.setText(_translate("MainWindow",str(Y[1])))
+        # self.Y3.setText(_translate("MainWindow",str(Y[2])))
+        # self.Y4.setText(_translate("MainWindow",str(Y[3])))
+        # self.R1.setText(_translate("MainWindow",str(R[0])))
+        # self.R2.setText(_translate("MainWindow",str(R[1])))
+        # self.R3.setText(_translate("MainWindow",str(R[2])))
+        # self.R4.setText(_translate("MainWindow",str(R[3])))
+        # self.A1.setText(_translate("MainWindow",str(A[0])))
+        # self.A2.setText(_translate("MainWindow",str(A[1])))
+        # self.A3.setText(_translate("MainWindow",str(A[2])))
+        # self.A4.setText(_translate("MainWindow",str(A[3])))
 
     # def show_camera(self):
         # while time.time() -T_start <= RECORD_LENGTH:
@@ -402,22 +402,22 @@ class Ui_MainWindow(object):
             # FileName = 0
             firsttime = False
         _translate = QtCore.QCoreApplication.translate
-        self.X1.setText(_translate("MainWindow",str(X[0])))
-        self.X2.setText(_translate("MainWindow",str(X[1])))
-        self.X3.setText(_translate("MainWindow",str(X[2])))
-        self.X4.setText(_translate("MainWindow",str(X[3])))
-        self.Y1.setText(_translate("MainWindow",str(Y[0])))
-        self.Y2.setText(_translate("MainWindow",str(Y[1])))
-        self.Y3.setText(_translate("MainWindow",str(Y[2])))
-        self.Y4.setText(_translate("MainWindow",str(Y[3])))
-        self.R1.setText(_translate("MainWindow",str(R[0])))
-        self.R2.setText(_translate("MainWindow",str(R[1])))
-        self.R3.setText(_translate("MainWindow",str(R[2])))
-        self.R4.setText(_translate("MainWindow",str(R[3])))
-        self.A1.setText(_translate("MainWindow",str(A[0])))
-        self.A2.setText(_translate("MainWindow",str(A[1])))
-        self.A3.setText(_translate("MainWindow",str(A[2])))
-        self.A4.setText(_translate("MainWindow",str(A[3])))
+        # self.X1.setText(_translate("MainWindow",str(X[0])))
+        # self.X2.setText(_translate("MainWindow",str(X[1])))
+        # self.X3.setText(_translate("MainWindow",str(X[2])))
+        # self.X4.setText(_translate("MainWindow",str(X[3])))
+        # self.Y1.setText(_translate("MainWindow",str(Y[0])))
+        # self.Y2.setText(_translate("MainWindow",str(Y[1])))
+        # self.Y3.setText(_translate("MainWindow",str(Y[2])))
+        # self.Y4.setText(_translate("MainWindow",str(Y[3])))
+        # self.R1.setText(_translate("MainWindow",str(R[0])))
+        # self.R2.setText(_translate("MainWindow",str(R[1])))
+        # self.R3.setText(_translate("MainWindow",str(R[2])))
+        # self.R4.setText(_translate("MainWindow",str(R[3])))
+        # self.A1.setText(_translate("MainWindow",str(A[0])))
+        # self.A2.setText(_translate("MainWindow",str(A[1])))
+        # self.A3.setText(_translate("MainWindow",str(A[2])))
+        # self.A4.setText(_translate("MainWindow",str(A[3])))
 
     # def show_camera(self):
         # while time.time() -T_start <= RECORD_LENGTH:
@@ -462,11 +462,11 @@ class Ui_MainWindow(object):
         global FileName
         FileName = 0
         fileName= QtWidgets.QFileDialog.getSaveFileName()
-        f=open(fileName[0],'w')
-        f.write("START\n")
-        for n in range(1,num,1):
-            f.write("Goal_ID"+ID[n]+";"+"Goal_X"+X[n]+";"+"Goal_Y"+Y[n]+";"+"Goal_Angle"+A[n]+";\n")
-        f.write("END")
+        # f=open(fileName[0],'w')
+        # f.write("START\n")
+        # for n in range(1,num,1):
+        #     f.write("Goal_ID"+ID[n]+";"+"Goal_X"+X[n]+";"+"Goal_Y"+Y[n]+";"+"Goal_Angle"+A[n]+";\n")
+        # f.write("END")
         f.close()
 
     def close_camera2(self):
