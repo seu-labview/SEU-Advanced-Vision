@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import os
-from MeshPly import *
+import MeshPly #import *
 import math
 def get_camera_intrinsic():
     K = np.zeros((3, 3), dtype='float64')
