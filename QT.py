@@ -5,12 +5,12 @@ from cv2 import cv2 as cv2
 from PyQt5 import QtCore, QtGui, QtWidgets
 # import pyrealsense2
 from pyrealsense2 import pyrealsense2 as rs
-import numpy as np
 import os
-import json
 import time
 import png
-from yolo6D import predict
+from yolo6D.Predict import predict
+from camera import Camera
+from corner import square_desk
 
 RECORD_LENGTH = 18
 
@@ -219,27 +219,24 @@ class Ui_MainWindow(object):
         self.statusBar = QtWidgets.QStatusBar(MainWindow)
         self.statusBar.setObjectName("statusBar")
         MainWindow.setStatusBar(self.statusBar)
-        self.pushButton.clicked.connect(self.open_camera1)
-        self.pushButton.clicked.connect(self.input1)
-        self.pushButton_3.clicked.connect(self.open_camera2)
-        self.pushButton_3.clicked.connect(self.input1)
+        # self.type = QtWidgets.QToolButton()
+        # self.type.setCheckable(True)
+        # round = 1
+        # self.type.setChecked(round)
+        # self.type.clicked.connect(self.changetype(round))
+        # self.type.setGeometry(QtCore.QRect(1200, 300, 20, 20))
         self.timer_camera = QtCore.QTimer()
-        self.timer_camera.timeout.connect(self.open_camera1)
-        self.pushButton_2.clicked.connect(self.close_camera1)
+        camera = None
+        self.pushButton.clicked.connect(self.open_camera(camera))
+        num = 0 # 图片编号
+        self.pushButton.clicked.connect(self.input1)
+        self.pushButton_3.clicked.connect(self.open_camera)
+        self.pushButton_3.clicked.connect(self.input1)
+        self.timer_camera.timeout.connect(self.capture_camera(camera, num))
+        self.pushButton_2.clicked.connect(self.close_camera(camera, num))
         self.pushButton_2.clicked.connect(self.input2)
-        self.pushButton_4.clicked.connect(self.close_camera2)
+        self.pushButton_4.clicked.connect(self.close_camera(camera, num))
         self.pushButton_4.clicked.connect(self.input2)
-        global X
-        global Y
-        global A
-        global R
-        global ID 
-        global num
-
-
-        
-
-
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -285,42 +282,14 @@ class Ui_MainWindow(object):
     #     ID=["","","","","","","","","","","",""]
     #     R=[r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12]
     #     num=n1
-        
+    def changetype(self, Type):
+        Type = ~Type
 
-    def open_camera1(self):
+    def open_camera(self, camera):
         if self.timer_camera.isActive() == False:
-            # self.capture = cv2.VideoCapture(1)
-            self.timer_camera.start(100)
-        global firsttime
-        if firsttime:
-            global pipeline
-            pipeline = rs.pipeline()
-            global config
-            config = rs.config()
-            config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-            config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
-            
-            # Start pipeline
-            profile = pipeline.start(config)
-            frames = pipeline.wait_for_frames()
-            color_frame = frames.get_color_frame()
+            self.timer_camera.start(3000)
 
-            # Color Intrinsics 
-            intr = color_frame.profile.as_video_stream_profile().intrinsics
-            camera_parameters = {'fx': intr.fx, 'fy': intr.fy,
-                                'ppx': intr.ppx, 'ppy': intr.ppy,
-                                'height': intr.height, 'width': intr.width}
-
-            
-            with open(folder + 'intrinsics.json', 'w') as fp:
-                json.dump(camera_parameters, fp)
-
-            align_to = rs.stream.color
-            global align
-            align = rs.align(align_to)
-            # T_start = time.time()            
-            # FileName = 0
-            firsttime = False
+        camera = Camera()
         _translate = QtCore.QCoreApplication.translate
         # self.X1.setText(_translate("MainWindow",str(X[0])))
         # self.X2.setText(_translate("MainWindow",str(X[1])))
@@ -339,163 +308,38 @@ class Ui_MainWindow(object):
         # self.A3.setText(_translate("MainWindow",str(A[2])))
         # self.A4.setText(_translate("MainWindow",str(A[3])))
 
-    # def show_camera(self):
-        # while time.time() -T_start <= RECORD_LENGTH:
-        frames = pipeline.wait_for_frames()
-        aligned_frames = align.process(frames)
+    def capture_camera(self, camera, num):
+        '''拍照'''
+        d, c = camera.capture(num)
 
-        aligned_depth_frame = aligned_frames.get_depth_frame()
-        color_frame = aligned_frames.get_color_frame()
+        filecad= folder+"JPEGImages/%s.jpg" % num
+        filedepth= folder+"depth/%s.png" % num
+        cv2.imwrite(filecad,c)
+        with open(filedepth, 'wb') as f:
+            writer = png.Writer(width=d.shape[1], height=d.shape[0], bitdepth=16, greyscale=True)
+            zgray2list = d.tolist()
+            writer.write(f, zgray2list)
 
-        # Validate that both frames are valid
-        if not aligned_depth_frame or not color_frame:
-            return
-
-        d = np.asanyarray(aligned_depth_frame.get_data())
-        c = np.asanyarray(color_frame.get_data())
-        
-        if True:
-            global FileName
-            filecad= folder+"JPEGImages/%s.jpg" % FileName
-            filedepth= folder+"depth/%s.png" % FileName
-            cv2.imwrite(filecad,c)
-            with open(filedepth, 'wb') as f:
-                writer = png.Writer(width=d.shape[1], height=d.shape[0],
-                                    bitdepth=16, greyscale=True)
-                zgray2list = d.tolist()
-                writer.write(f, zgray2list)
-
-            FileName+=1
+            num += 1
 
         show = cv2.resize(c, (640, 480))
         show = cv2.cvtColor(show, cv2.COLOR_BGR2RGB)
         showImage = QtGui.QImage(show.data, show.shape[1], show.shape[0], QtGui.QImage.Format_RGB888)
         self.label_3.setPixmap(QtGui.QPixmap.fromImage(showImage))
-    def open_camera2(self):
-        if self.timer_camera.isActive() == False:
-            # self.capture = cv2.VideoCapture(1)
-            self.timer_camera.start(100)
-        global firsttime
-        if firsttime:
-            global pipeline
-            pipeline = rs.pipeline()
-            global config
-            config = rs.config()
-            config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-            config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
-            
-            # Start pipeline
-            profile = pipeline.start(config)
-            frames = pipeline.wait_for_frames()
-            color_frame = frames.get_color_frame()
+        predict('safeguard', num) # 预测
+        square_desk(num)
 
-            # Color Intrinsics 
-            intr = color_frame.profile.as_video_stream_profile().intrinsics
-            camera_parameters = {'fx': intr.fx, 'fy': intr.fy,
-                                'ppx': intr.ppx, 'ppy': intr.ppy,
-                                'height': intr.height, 'width': intr.width}
-
-            
-            with open(folder + 'intrinsics.json', 'w') as fp:
-                json.dump(camera_parameters, fp)
-
-            align_to = rs.stream.color
-            global align
-            align = rs.align(align_to)
-            # T_start = time.time()            
-            # FileName = 0
-            firsttime = False
-        _translate = QtCore.QCoreApplication.translate
-        # self.X1.setText(_translate("MainWindow",str(X[0])))
-        # self.X2.setText(_translate("MainWindow",str(X[1])))
-        # self.X3.setText(_translate("MainWindow",str(X[2])))
-        # self.X4.setText(_translate("MainWindow",str(X[3])))
-        # self.Y1.setText(_translate("MainWindow",str(Y[0])))
-        # self.Y2.setText(_translate("MainWindow",str(Y[1])))
-        # self.Y3.setText(_translate("MainWindow",str(Y[2])))
-        # self.Y4.setText(_translate("MainWindow",str(Y[3])))
-        # self.R1.setText(_translate("MainWindow",str(R[0])))
-        # self.R2.setText(_translate("MainWindow",str(R[1])))
-        # self.R3.setText(_translate("MainWindow",str(R[2])))
-        # self.R4.setText(_translate("MainWindow",str(R[3])))
-        # self.A1.setText(_translate("MainWindow",str(A[0])))
-        # self.A2.setText(_translate("MainWindow",str(A[1])))
-        # self.A3.setText(_translate("MainWindow",str(A[2])))
-        # self.A4.setText(_translate("MainWindow",str(A[3])))
-
-    # def show_camera(self):
-        # while time.time() -T_start <= RECORD_LENGTH:
-        frames = pipeline.wait_for_frames()
-        aligned_frames = align.process(frames)
-
-        aligned_depth_frame = aligned_frames.get_depth_frame()
-        color_frame = aligned_frames.get_color_frame()
-
-        # Validate that both frames are valid
-        if not aligned_depth_frame or not color_frame:
-            return
-
-        d = np.asanyarray(aligned_depth_frame.get_data())
-        c = np.asanyarray(color_frame.get_data())
-        
-        if True:
-            global FileName
-            filecad= folder+"JPEGImages/%s.jpg" % FileName
-            filedepth= folder+"depth/%s.png" % FileName
-            cv2.imwrite(filecad,c)
-            with open(filedepth, 'wb') as f:
-                writer = png.Writer(width=d.shape[1], height=d.shape[0],
-                                    bitdepth=16, greyscale=True)
-                zgray2list = d.tolist()
-                writer.write(f, zgray2list)
-
-            FileName+=1
-
-        show = cv2.resize(c, (640, 480))
-        show = cv2.cvtColor(show, cv2.COLOR_BGR2RGB)
-        showImage = QtGui.QImage(show.data, show.shape[1], show.shape[0], QtGui.QImage.Format_RGB888)
-        self.label_3.setPixmap(QtGui.QPixmap.fromImage(showImage))
-
-
-    def close_camera1(self):
+    def close_camera(self, camera, num):
         if self.timer_camera.isActive():
             self.timer_camera.stop()
-            # self.capture.release()
-        pipeline.stop()
+            
+        del camera
         cv2.destroyAllWindows()
-        global FileName
-        FileName = 0
-        fileName= QtWidgets.QFileDialog.getSaveFileName()
-        # f=open(fileName[0],'w')
-        # f.write("START\n")
-        # for n in range(1,num,1):
-        #     f.write("Goal_ID"+ID[n]+";"+"Goal_X"+X[n]+";"+"Goal_Y"+Y[n]+";"+"Goal_Angle"+A[n]+";\n")
-        # f.write("END")
-        f.close()
-
-    def close_camera2(self):
-        if self.timer_camera.isActive():
-            self.timer_camera.stop()
-            # self.capture.release()
-        pipeline.stop()
-        cv2.destroyAllWindows()
-        global FileName
-        FileName = 0
-        fileName= QtWidgets.QFileDialog.getSaveFileName()
-        f=open(fileName[0],'w')
-        f.write("START\n")
-        for n in range(1,num,1):
-            f.write("Goal_ID"+ID[n]+";"+"Goal_Radius"+R[n]+";\n")
-        f.write("END")
-        f.close()
+        num = 0
 
 if __name__ == "__main__":
     folder = os.getcwd() + "/"
     make_directories(folder)
-    global FileName
-    FileName = 0
-    global firsttime
-    firsttime = True
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()

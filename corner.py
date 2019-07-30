@@ -4,7 +4,7 @@ import os
 import math
 import sys
 from yolo6D.utils import get_camera_intrinsic
-from yolo6D.predict import draw
+from yolo6D.Predict import draw
 
 # def draw(img, corner, imgpts):
 #     img = cv2.line(img, corner, tuple(imgpts[0].ravel()), (255,0,0), 3)

@@ -60,11 +60,11 @@ def predict(name, num):
     输入: 物体名称，图片编号
     导出：带预测框图片
     '''
-    img_name = str(num) + '.jpg'
+    img_name = 'JPEGImages/' + str(num) + '.jpg'
 
     img = cv.imread(img_name,1)
 
-    boxes = detect(str(name), 'yolo6D/yolo-pose.cfg', 'weights/' + name + '.weights', 'JPEGImages/' + str(num) + '.jpg')
+    boxes = detect(str(name), 'yolo6D/yolo-pose.cfg', 'weights/' + name + '.weights', img_name)
     best_conf_est = -1
     for j in range(len(boxes)):
         if (boxes[j][18] > best_conf_est):
