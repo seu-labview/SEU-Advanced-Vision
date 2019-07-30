@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import cv2
+from cv2 import cv2 as cv2
 from PyQt5 import QtCore, QtGui, QtWidgets
-import pyrealsense2 as rs
+# import pyrealsense2
+from pyrealsense2 import pyrealsense2 as rs
 import numpy as np
 import os
 import json
 import time
 import png
+from yolo6D import predict
 
 RECORD_LENGTH = 18
 
@@ -268,19 +270,21 @@ class Ui_MainWindow(object):
         self.label_33.setText(_translate("MainWindow", "目标4朝向角Angle"))
         self.label_35.setText(_translate("MainWindow", "目标4距离Radius"))
     def input1(self):
-        X=[x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12]
-        Y=[y1,y2,y3,y4,y5,y6,y7,y8,y9,y10,y11,y12]
-        A=[a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12]
-        ID=["","","","","","","","","","","",""]
-        R=["","","","","","","","","","","",""]
-        num=n1
+        return 1
+    #     X=[x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12]
+    #     Y=[y1,y2,y3,y4,y5,y6,y7,y8,y9,y10,y11,y12]
+    #     A=[a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12]
+    #     ID=["","","","","","","","","","","",""]
+    #     R=["","","","","","","","","","","",""]
+    #     num=n1
     def input2(self):
-        X=["","","","","","","","","","","",""]
-        Y=["","","","","","","","","","","",""]
-        A=["","","","","","","","","","","",""]
-        ID=["","","","","","","","","","","",""]
-        R=[r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12]
-        num=n1
+        return 1
+    #     X=["","","","","","","","","","","",""]
+    #     Y=["","","","","","","","","","","",""]
+    #     A=["","","","","","","","","","","",""]
+    #     ID=["","","","","","","","","","","",""]
+    #     R=[r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12]
+    #     num=n1
         
 
     def open_camera1(self):

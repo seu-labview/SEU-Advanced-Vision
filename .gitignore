@@ -1,3 +1,5 @@
 DEBUG
 *.code-workspace
 LINEMOD/
+__pycache__/
+*.weights

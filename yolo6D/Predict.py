@@ -10,15 +10,14 @@ from torch.autograd import Variable
 from torchvision import datasets, transforms
 import scipy.io
 
-import darknet
-from darknet import Darknet as dn
-import dataset
-from utils import get_camera_intrinsic, do_detect, get_3D_corners#, corner_confidence9
-from MeshPly import MeshPly
-'''
+from yolo6D.darknet import Darknet as dn
+import yolo6D.dataset
+from yolo6D.utils import get_camera_intrinsic, do_detect, get_3D_corners#, corner_confidence9
+from yolo6D.MeshPly import MeshPly
+
 def draw(img, corner, imgpts):
-'''#绘制坐标系
-'''
+    '''绘制坐标系'''
+
     img = cv.line(img, corner, tuple(imgpts[0].ravel()), (255,0,0), 3)
     cv.putText(img, "X",tuple(imgpts[0].ravel()),cv.FONT_HERSHEY_COMPLEX,0.5,(100,149,237),2)
     img = cv.line(img, corner, tuple(imgpts[1].ravel()), (0,255,0), 3)
@@ -26,37 +25,19 @@ def draw(img, corner, imgpts):
     img = cv.line(img, corner, tuple(imgpts[2].ravel()), (0,0,255), 3)
     cv.putText(img, "Z",tuple(imgpts[2].ravel()),cv.FONT_HERSHEY_COMPLEX,0.5,(255,140,0),2)
     return img
-'''
-
-'''
-def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
-    boxes = dn.make_boxes(net)
-    probs = dn.make_probs(net)
-    num =   dn.num_boxes(net)
-    dn.network_detect(net, image, thresh, hier_thresh, nms, boxes, probs)
-    res = []
-    for j in range(num):
-        for i in range(meta.classes):
-            if probs[j][i] > 0:
-                res.append((meta.names[i], probs[j][i], (boxes[j].x, boxes[j].y, boxes[j].w, boxes[j].h)))
-    res = sorted(res, key=lambda x: -x[1])
-    dn.free_ptrs(dn.cast(probs, dn.POINTER(dn.c_void_p)), num)
-    return res
-'''
 
 def makedirs(path):
     '''Create new directory'''
     if not os.path.exists( path ):
         os.makedirs( path )
 
-# def valid(datacfg, cfgfile, weightfile, outfile):
 def detect(name, cfgfile, weightfile, image_path):
     '''
     调用神经网络检测
     输入：图片位置
     返回：10个二维点坐标组成的2*10数组
     '''
-
+    print(image_path)
     # Parameters
     seed         = int(time.time())
     gpus         = '0'     # Specify which gpus to use
@@ -75,20 +56,15 @@ def detect(name, cfgfile, weightfile, image_path):
 
 def predict(name, num):
     '''
-    ！注意：需将权重文件放在 yolo6D 下
-    单物体预测并框出
+    ！注意：需将权重文件放在 项目根目录中 weigths 下
     输入: 物体名称，图片编号
-    导出：带框图片
+    导出：带预测框图片
     '''
-    # folder = 'LINEMOD/' + name + '/'
-    # internal_calibration = get_camera_intrinsic()
-    # meshname = folder + 'registeredScene.ply'
-    img_name = num + '.jpg'
-    # path_name = num + '.txt'
+    img_name = str(num) + '.jpg'
 
     img = cv.imread(img_name,1)
 
-    boxes = detect(name, 'yolo-pose.cfg', '/home/scirocco/' + name + '.weights', num + '.jpg')
+    boxes = detect(str(name), 'yolo6D/yolo-pose.cfg', 'weights/' + name + '.weights', 'JPEGImages/' + str(num) + '.jpg')
     best_conf_est = -1
     for j in range(len(boxes)):
         if (boxes[j][18] > best_conf_est):
@@ -96,10 +72,6 @@ def predict(name, num):
             best_conf_est = boxes[j][18]
 
     bs = np.array(np.reshape(box_pr[:18], [9, 2]), dtype='float32')
-    # print("\nbs:\n")
-    # print(bs)
-    # print("\n\n")
-    # labpath = path_name
     width = 640
     height = 480
     x_pose = []
@@ -153,7 +125,6 @@ def predict(name, num):
         corners2D_gt[i,0] = x_pose[i]
         corners2D_gt[i,1] = y_pose[i]
 
-
     cv.line(img,(x_pose[1],y_pose[1]),(x_pose[2],y_pose[2]),(255,255,0),2)
     cv.line(img,(x_pose[2],y_pose[2]),(x_pose[4],y_pose[4]),(255,255,0),2)
     cv.line(img,(x_pose[3],y_pose[3]),(x_pose[4],y_pose[4]),(255,255,0),2)
@@ -169,37 +140,8 @@ def predict(name, num):
     cv.line(img,(x_pose[6],y_pose[6]),(x_pose[8],y_pose[8]),(255,255,0),2)
     cv.line(img,(x_pose[7],y_pose[7]),(x_pose[8],y_pose[8]),(255,255,0),2)
 
-    # distCoeffs = np.zeros((8, 1), dtype='float32')
-    # mesh          = MeshPly(meshname)
-    # vertices      = np.c_[np.array(mesh.vertices), np.ones((len(mesh.vertices), 1))].transpose()
-    # corners3D     = get_3D_corners(vertices)
-
-    #rvector = np.array((1,3),dtype='float32')
-    #tvector = np.array((1,3),dtype='float32')
-    # objpoints3D = np.array(np.transpose(np.concatenate((np.zeros((3, 1)), corners3D[:3, :]), axis=1)), dtype='float32')
-    # KK = np.array(internal_calibration, dtype='float32')
     corners2D_gt = np.array(corners2D_gt, dtype='float32')
 
-
-    # retval,rvector,tvector,inlier=cv.solvePnPRansac(objpoints3D,corners2D_gt,KK,distCoeffs)
-    # _,rvector,tvector,inlier=cv.solvePnPRansac(objpoints3D,corners2D_gt,KK,distCoeffs)
-    # print(rvector)
-    # print(tvector)
-    # print(inlier)
-    # rmatrix,_ =cv.Rodrigues(rvector)
-    # print(rmatrix)
-    # theta_x = math.atan2(rmatrix[2,1], rmatrix[2,2])
-    # theta_y = math.atan2(-rmatrix[2,0], math.sqrt(rmatrix[2,1] ** 2 + rmatrix[2,2] ** 2))
-    # theta_z = math.atan2(rmatrix[1,0], rmatrix[0,0])
-    # du_x = (theta_x / math.pi) * 180
-    # du_y = (theta_y / math.pi) * 180
-    # du_z = (theta_z / math.pi) * 180
-    # print(du_x,du_y,du_z)
-    # axis = np.float32([[0.1,0,0], [0,0.1,0], [0,0,0.1]]).reshape(-1,3)
-
-    # imgpts, _ = cv.projectPoints(axis, rvector, tvector,KK,distCoeffs,)
-    # print(imgpts)
-    # img = draw(img,(x_pose[0],y_pose[0]),imgpts)
     # 保存照片
-    cv.imwrite('predict'+ num + '.jpg',img)
+    cv.imwrite('predict'+ str(num) + '.jpg',img)
     cv.destroyAllWindows()   

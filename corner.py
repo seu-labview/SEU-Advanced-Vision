@@ -2,20 +2,18 @@ import numpy as np
 from cv2 import cv2
 import os
 import math
-from utils import get_camera_intrinsic
+import sys
+from yolo6D.utils import get_camera_intrinsic
+from yolo6D.predict import draw
 
-internal_calibration = get_camera_intrinsic()
-internal_calibration = np.array(internal_calibration, dtype='float32')
-distCoeffs = np.zeros((8, 1), dtype='float32')
-
-def draw(img, corner, imgpts):
-    img = cv2.line(img, corner, tuple(imgpts[0].ravel()), (255,0,0), 3)
-    cv2.putText(img, "X",tuple(imgpts[0].ravel()),cv2.FONT_HERSHEY_COMPLEX,0.5,(100,149,237),2)
-    img = cv2.line(img, corner, tuple(imgpts[1].ravel()), (0,255,0), 3)
-    cv2.putText(img, "Y",tuple(imgpts[1].ravel()),cv2.FONT_HERSHEY_COMPLEX,0.5,(200,20,127),2)
-    img = cv2.line(img, corner, tuple(imgpts[2].ravel()), (0,0,255), 3)
-    cv2.putText(img, "-Z",tuple(imgpts[2].ravel()),cv2.FONT_HERSHEY_COMPLEX,0.5,(255,140,0),2)
-    return img
+# def draw(img, corner, imgpts):
+#     img = cv2.line(img, corner, tuple(imgpts[0].ravel()), (255,0,0), 3)
+#     cv2.putText(img, "X",tuple(imgpts[0].ravel()),cv2.FONT_HERSHEY_COMPLEX,0.5,(100,149,237),2)
+#     img = cv2.line(img, corner, tuple(imgpts[1].ravel()), (0,255,0), 3)
+#     cv2.putText(img, "Y",tuple(imgpts[1].ravel()),cv2.FONT_HERSHEY_COMPLEX,0.5,(200,20,127),2)
+#     img = cv2.line(img, corner, tuple(imgpts[2].ravel()), (0,0,255), 3)
+#     cv2.putText(img, "-Z",tuple(imgpts[2].ravel()),cv2.FONT_HERSHEY_COMPLEX,0.5,(255,140,0),2)
+#     return img
 
 #open file and read picture
 def read_data_cfg(datacfg):
@@ -57,28 +55,22 @@ def getcrosspoint(rho1,theta1,rho2,theta2):
     print(corss_x,cross_y)
     return (corss_x,cross_y)
 
-if __name__ == "__main__":
-    datacfg = 'data.data'
-    data_options  = read_data_cfg(datacfg)
-    ply_path = data_options['plypath']
-    pic_path = data_options['picpath']
-    out_path = data_options['outpath']
-    label_path = data_options['labelpath']
-    window_name = data_options['showwindowname']
-    print(pic_path)
-    img = cv2.imread(pic_path,1)
+def square_desk(num):
+    '''
+    输入：图片编号
+    输出：坐标系
+    导出：带坐标系图片
+    '''
+    img_path = 'JPEGImages/' + str(num) + '.jpg'
+    img = cv2.imread(img_path,1)
     img = cv2.resize(img,(640,480), interpolation = cv2.INTER_CUBIC)
 
-    test_img = img
-    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    cv2.namedWindow('test', cv2.WINDOW_NORMAL)
-    cv2.namedWindow('gray', cv2.WINDOW_NORMAL)
-    cv2.namedWindow('gray_raw', cv2.WINDOW_NORMAL)
+    internal_calibration = get_camera_intrinsic()
+    internal_calibration = np.array(internal_calibration, dtype='float32')
+    distCoeffs = np.zeros((8, 1), dtype='float32')
+
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    #threshold 
-    lower_bgr = np.array([150,160,170]) 
-    upper_bgr = np.array([210,200,200])
-    test_img = cv2.inRange(img,lower_bgr,upper_bgr)
+    # threshold
     lower_gray = np.array([140])
     upper_gray = np.array([200])
     test_gray = cv2.inRange(gray,lower_gray,upper_gray)
@@ -199,20 +191,9 @@ if __name__ == "__main__":
     Table_3D.append([55,55,0])
     Table_3D = np.array(Table_3D,dtype='float32')
     Table_2D = np.array(Table_2D,dtype='float32')
-    retval,rvector,tvector=cv2.solvePnP(Table_3D,Table_2D,internal_calibration,distCoeffs)
-    rmatrix,_ =cv2.Rodrigues(rvector)
+    _,rvector,tvector=cv2.solvePnP(Table_3D,Table_2D,internal_calibration,distCoeffs)
     axis = np.float32([[55,0,0], [0,55,0], [0,0,-20]]).reshape(-1,3)
     imgpts, _ = cv2.projectPoints(axis, rvector, tvector,internal_calibration,distCoeffs,)
     img = draw(img,(left_top_point_x, left_top_point_y),imgpts)
 
-    cv2.imwrite('houghlines3.jpg',img)
-    cv2.imshow(window_name,test_gray)
-    cv2.imshow('gray',edges)
-    cv2.imshow('test',img)
-    cv2.imshow('gray_raw',gray)
-    k = cv2.waitKey(0)
-    if k == 27:         # wait for ESC key to exit5
-        cv2.destroyAllWindows()
-    elif k == ord('s'): # wait for 's' key to save and exit
-        cv2.imwrite(out_path,img)
-        cv2.destroyAllWindows()   
+    cv2.imwrite('corner.jpg',img)

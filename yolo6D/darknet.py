@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from region_loss import RegionLoss
-from cfg import *
+from yolo6D.region_loss import RegionLoss
+from yolo6D.cfg import *
 
 class MaxPoolStride1(nn.Module):
     def __init__(self):
