@@ -21,6 +21,7 @@ def make_directories(folder):
         os.makedirs(folder+"depth/")
 
 class Ui_MainWindow(object):
+    count = -1
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1400, 700)
@@ -219,23 +220,22 @@ class Ui_MainWindow(object):
         self.statusBar = QtWidgets.QStatusBar(MainWindow)
         self.statusBar.setObjectName("statusBar")
         MainWindow.setStatusBar(self.statusBar)
-        # self.type = QtWidgets.QToolButton()
-        # self.type.setCheckable(True)
-        # round = 1
-        # self.type.setChecked(round)
-        # self.type.clicked.connect(self.changetype(round))
-        # self.type.setGeometry(QtCore.QRect(1200, 300, 20, 20))
+        self.type = QtWidgets.QToolButton()
+        self.type.setCheckable(True)
+        round = 1
+        self.type.setChecked(round)
+        self.type.clicked.connect(lambda:self.changetype(round))
+        self.type.setGeometry(QtCore.QRect(1200, 300, 20, 20))
         self.timer_camera = QtCore.QTimer()
-        camera = None
-        self.pushButton.clicked.connect(self.open_camera(camera))
-        num = 0 # 图片编号
+        camera = Camera()
+        self.pushButton.clicked.connect(lambda:self.open_camera(camera))
         self.pushButton.clicked.connect(self.input1)
         self.pushButton_3.clicked.connect(self.open_camera)
         self.pushButton_3.clicked.connect(self.input1)
-        self.timer_camera.timeout.connect(self.capture_camera(camera, num))
-        self.pushButton_2.clicked.connect(self.close_camera(camera, num))
+        self.timer_camera.timeout.connect(lambda:self.capture_camera(camera))
+        self.pushButton_2.clicked.connect(lambda:self.close_camera(camera))
         self.pushButton_2.clicked.connect(self.input2)
-        self.pushButton_4.clicked.connect(self.close_camera(camera, num))
+        self.pushButton_4.clicked.connect(lambda:self.close_camera(camera))
         self.pushButton_4.clicked.connect(self.input2)
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -287,9 +287,10 @@ class Ui_MainWindow(object):
 
     def open_camera(self, camera):
         if self.timer_camera.isActive() == False:
-            self.timer_camera.start(3000)
-
-        camera = Camera()
+            self.timer_camera.start(5000)
+        camera.init()
+        print("10% \033[0;32m相机初始化完成\033[0m")
+        # camera = Camera()
         _translate = QtCore.QCoreApplication.translate
         # self.X1.setText(_translate("MainWindow",str(X[0])))
         # self.X2.setText(_translate("MainWindow",str(X[1])))
@@ -307,35 +308,48 @@ class Ui_MainWindow(object):
         # self.A2.setText(_translate("MainWindow",str(A[1])))
         # self.A3.setText(_translate("MainWindow",str(A[2])))
         # self.A4.setText(_translate("MainWindow",str(A[3])))
+    def show(self, img):
+        '''img为图片数据'''        
+        show = cv2.resize(img, (640, 480))
+        show = cv2.cvtColor(show, cv2.COLOR_BGR2RGB)
+        showImage = QtGui.QImage(show.data, show.shape[1], show.shape[0], QtGui.QImage.Format_RGB888)
+        self.label_3.setPixmap(QtGui.QPixmap.fromImage(showImage))
 
-    def capture_camera(self, camera, num):
+    def capture_camera(self, camera):
         '''拍照'''
-        d, c = camera.capture(num)
+        self.count = self.count + 1
+        print("    \033[0;34m拍摄图片%s.jpg...\033[0m" % self.count)
+        d, c = camera.capture(self.count)
 
-        filecad= folder+"JPEGImages/%s.jpg" % num
-        filedepth= folder+"depth/%s.png" % num
+        filecad= folder+"JPEGImages/%s.jpg" % self.count
+        filedepth= folder+"depth/%s.png" % self.count
         cv2.imwrite(filecad,c)
+        print("    \033[0;32m%s.jpg已保存\033[0m" % self.count)
+        self.show(c)
         with open(filedepth, 'wb') as f:
             writer = png.Writer(width=d.shape[1], height=d.shape[0], bitdepth=16, greyscale=True)
             zgray2list = d.tolist()
             writer.write(f, zgray2list)
 
-            num += 1
+        print("    \033[0;34m预测图片%s.jpg...\033[0m" % self.count)
+        predict('safeguard', self.count) # 预测
+        print("    \033[0;32mpredict%s.jpg已保存\033[0m" % self.count)
+        # predicted = cv2.imread('JPEGImages/predict%s.jpg' % self.count, 1)
+        # self.show(predicted)
+        print("    \033[0;34m定位图片%s.jpg...\033[0m" % self.count)
+        square_desk(self.count)
+        print("    \033[0;32mmarked%s.jpg已保存\033[0m" % self.count)
+        marked_img = 'marked' + str(self.count) + '.jpg'
+        marked = cv2.imread(marked_img,1)
+        self.show(marked)
 
-        show = cv2.resize(c, (640, 480))
-        show = cv2.cvtColor(show, cv2.COLOR_BGR2RGB)
-        showImage = QtGui.QImage(show.data, show.shape[1], show.shape[0], QtGui.QImage.Format_RGB888)
-        self.label_3.setPixmap(QtGui.QPixmap.fromImage(showImage))
-        predict('safeguard', num) # 预测
-        square_desk(num)
-
-    def close_camera(self, camera, num):
+    def close_camera(self, camera):
         if self.timer_camera.isActive():
             self.timer_camera.stop()
             
         del camera
         cv2.destroyAllWindows()
-        num = 0
+        self.count = 0
 
 if __name__ == "__main__":
     folder = os.getcwd() + "/"
@@ -343,6 +357,8 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
+    print(" 0% 开始初始化界面")
     ui.setupUi(MainWindow)
+    print(" 5% \033[0;32m界面初始化完成\033[0m")
     MainWindow.show()
     sys.exit(app.exec_())

@@ -61,7 +61,7 @@ def square_desk(num):
     输出：坐标系
     导出：带坐标系图片
     '''
-    img_path = 'JPEGImages/' + str(num) + '.jpg'
+    img_path = 'JPEGImages/predict' + str(num) + '.jpg'
     img = cv2.imread(img_path,1)
     img = cv2.resize(img,(640,480), interpolation = cv2.INTER_CUBIC)
 
@@ -91,109 +91,112 @@ def square_desk(num):
     bottom_line_rho = []
     summ = 0
     final_lines = np.zeros((4,2))
-    for line in lines:
-        for rho,theta in line:
+    if lines is None:
+        print("    \033[0;31m未检测到方桌！\033[0m")
+    else:
+        for line in lines:
+            for rho,theta in line:
 
-            if theta > (math.pi*(2/3)):
-                if abs(rho) <320:
-                    right_line_theta.append(theta)
-                    right_line_rho.append(rho)
-            elif theta > (math.pi/4):
-                if abs(rho) <320:
-                    top_line_theta.append(theta)
-                    top_line_rho.append(rho)
+                if theta > (math.pi*(2/3)):
+                    if abs(rho) <320:
+                        right_line_theta.append(theta)
+                        right_line_rho.append(rho)
+                elif theta > (math.pi/4):
+                    if abs(rho) <320:
+                        top_line_theta.append(theta)
+                        top_line_rho.append(rho)
+                    else:
+                        bottom_line_theta.append(theta)
+                        bottom_line_rho.append(rho)
                 else:
-                    bottom_line_theta.append(theta)
-                    bottom_line_rho.append(rho)
-            else:
-                left_line_theta.append(theta)
-                left_line_rho.append(rho)
+                    left_line_theta.append(theta)
+                    left_line_rho.append(rho)
+            
+
+        for i in right_line_theta:
+            summ +=i
+        right_line_theta_average = summ / len(right_line_theta)
+        final_lines[0,1] = right_line_theta_average
+        summ = 0
+        for i in right_line_rho:
+            summ +=i
+        right_line_rho_average = summ / len(right_line_rho)
+        final_lines[0,0] = right_line_rho_average
+        summ = 0 
+
+        for i in left_line_theta:
+            summ +=i
+        left_line_theta_average = summ / len(left_line_theta)
+        final_lines[1,1] = left_line_theta_average
+        summ = 0
+        for i in left_line_rho:
+            summ +=i
+        left_line_rho_average = summ / len(left_line_rho)
+        final_lines[1,0] = left_line_rho_average
+        summ = 0
+
+        for i in top_line_theta:
+            summ +=i
+        top_line_theta_average = summ / len(top_line_theta)
+        final_lines[2,1] = top_line_theta_average
+        summ = 0
+        for i in top_line_rho:
+            summ +=i
+        top_line_rho_average = summ / len(top_line_rho)
+        final_lines[2,0] = top_line_rho_average
+        summ = 0
+
+        for i in bottom_line_theta:
+            summ +=i
+        bottom_line_theta_average = summ / len(bottom_line_theta)
+        final_lines[3,1] = bottom_line_theta_average
+        summ = 0
+        for i in bottom_line_rho:
+            summ +=i
+        bottom_line_rho_average = summ / len(bottom_line_rho)
+        final_lines[3,0] = bottom_line_rho_average
+        summ = 0
+        print(final_lines)
+        final_lines = np.array(final_lines)
+        for i in range(4):
+            theta = final_lines[i,1]
+            rho = final_lines[i,0]
+            a = np.cos(theta)
+            b = np.sin(theta)
+            x0 = a*rho
+            y0 = b*rho
+            x1 = int(x0 + 1000*(-b))
+            y1 = int(y0 + 1000*(a))
+            x2 = int(x0 - 1000*(-b))
+            y2 = int(y0 - 1000*(a))
+            cv2.line(img,(x1,y1),(x2,y2),(200,135,100),2)
+            string = str(i)
+            cv2.putText(img, string,(int(x0),int(y0)),cv2.FONT_HERSHEY_COMPLEX,0.5,(255,0,255),1)
         
-
-    for i in right_line_theta:
-        summ +=i
-    right_line_theta_average = summ / len(right_line_theta)
-    final_lines[0,1] = right_line_theta_average
-    summ = 0
-    for i in right_line_rho:
-        summ +=i
-    right_line_rho_average = summ / len(right_line_rho)
-    final_lines[0,0] = right_line_rho_average
-    summ = 0 
-
-    for i in left_line_theta:
-        summ +=i
-    left_line_theta_average = summ / len(left_line_theta)
-    final_lines[1,1] = left_line_theta_average
-    summ = 0
-    for i in left_line_rho:
-        summ +=i
-    left_line_rho_average = summ / len(left_line_rho)
-    final_lines[1,0] = left_line_rho_average
-    summ = 0
-
-    for i in top_line_theta:
-        summ +=i
-    top_line_theta_average = summ / len(top_line_theta)
-    final_lines[2,1] = top_line_theta_average
-    summ = 0
-    for i in top_line_rho:
-        summ +=i
-    top_line_rho_average = summ / len(top_line_rho)
-    final_lines[2,0] = top_line_rho_average
-    summ = 0
-
-    for i in bottom_line_theta:
-        summ +=i
-    bottom_line_theta_average = summ / len(bottom_line_theta)
-    final_lines[3,1] = bottom_line_theta_average
-    summ = 0
-    for i in bottom_line_rho:
-        summ +=i
-    bottom_line_rho_average = summ / len(bottom_line_rho)
-    final_lines[3,0] = bottom_line_rho_average
-    summ = 0
-    print(final_lines)
-    final_lines = np.array(final_lines)
-    for i in range(4):
-        theta = final_lines[i,1]
-        rho = final_lines[i,0]
-        a = np.cos(theta)
-        b = np.sin(theta)
-        x0 = a*rho
-        y0 = b*rho
-        x1 = int(x0 + 1000*(-b))
-        y1 = int(y0 + 1000*(a))
-        x2 = int(x0 - 1000*(-b))
-        y2 = int(y0 - 1000*(a))
-        cv2.line(img,(x1,y1),(x2,y2),(200,135,100),2)
-        string = str(i)
-        cv2.putText(img, string,(int(x0),int(y0)),cv2.FONT_HERSHEY_COMPLEX,0.5,(255,0,255),1)
-    
-    left_top_point_x, left_top_point_y = getcrosspoint(left_line_rho_average,left_line_theta_average,top_line_rho_average,top_line_theta_average)
-    left_bottom_point_x, left_bottom_point_y = getcrosspoint(left_line_rho_average,left_line_theta_average,bottom_line_rho_average,bottom_line_theta_average) 
-    right_top_point_x, right_top_point_y = getcrosspoint(right_line_rho_average,right_line_theta_average,top_line_rho_average,top_line_theta_average)
-    right_bottom_point_x, right_bottom_point_y = getcrosspoint(right_line_rho_average,right_line_theta_average,bottom_line_rho_average,bottom_line_theta_average)
-    
-    Table_2D = []
-    Table_2D.append([left_top_point_x, left_top_point_y])
-    Table_2D.append([left_bottom_point_x, left_bottom_point_y])
-    Table_2D.append([right_top_point_x, right_top_point_y])
-    Table_2D.append([right_bottom_point_x, right_bottom_point_y])
-    cv2.circle(img, (left_top_point_x, left_top_point_y), 3, (255,0,0),-1)
-    cv2.circle(img, (left_bottom_point_x, left_bottom_point_y), 3, (255,0,0),-1)
-    cv2.circle(img, (right_top_point_x, right_top_point_y), 3, (255,0,0),-1)
-    cv2.circle(img, (right_bottom_point_x, right_bottom_point_y), 3, (255,0,0),-1)
-    Table_3D = []
-    Table_3D.append([0,0,0])
-    Table_3D.append([0,55,0])
-    Table_3D.append([55,0,0])
-    Table_3D.append([55,55,0])
-    Table_3D = np.array(Table_3D,dtype='float32')
-    Table_2D = np.array(Table_2D,dtype='float32')
-    _,rvector,tvector=cv2.solvePnP(Table_3D,Table_2D,internal_calibration,distCoeffs)
-    axis = np.float32([[55,0,0], [0,55,0], [0,0,-20]]).reshape(-1,3)
-    imgpts, _ = cv2.projectPoints(axis, rvector, tvector,internal_calibration,distCoeffs,)
-    img = draw(img,(left_top_point_x, left_top_point_y),imgpts)
+        left_top_point_x, left_top_point_y = getcrosspoint(left_line_rho_average,left_line_theta_average,top_line_rho_average,top_line_theta_average)
+        left_bottom_point_x, left_bottom_point_y = getcrosspoint(left_line_rho_average,left_line_theta_average,bottom_line_rho_average,bottom_line_theta_average) 
+        right_top_point_x, right_top_point_y = getcrosspoint(right_line_rho_average,right_line_theta_average,top_line_rho_average,top_line_theta_average)
+        right_bottom_point_x, right_bottom_point_y = getcrosspoint(right_line_rho_average,right_line_theta_average,bottom_line_rho_average,bottom_line_theta_average)
+        
+        Table_2D = []
+        Table_2D.append([left_top_point_x, left_top_point_y])
+        Table_2D.append([left_bottom_point_x, left_bottom_point_y])
+        Table_2D.append([right_top_point_x, right_top_point_y])
+        Table_2D.append([right_bottom_point_x, right_bottom_point_y])
+        cv2.circle(img, (left_top_point_x, left_top_point_y), 3, (255,0,0),-1)
+        cv2.circle(img, (left_bottom_point_x, left_bottom_point_y), 3, (255,0,0),-1)
+        cv2.circle(img, (right_top_point_x, right_top_point_y), 3, (255,0,0),-1)
+        cv2.circle(img, (right_bottom_point_x, right_bottom_point_y), 3, (255,0,0),-1)
+        Table_3D = []
+        Table_3D.append([0,0,0])
+        Table_3D.append([0,55,0])
+        Table_3D.append([55,0,0])
+        Table_3D.append([55,55,0])
+        Table_3D = np.array(Table_3D,dtype='float32')
+        Table_2D = np.array(Table_2D,dtype='float32')
+        _,rvector,tvector=cv2.solvePnP(Table_3D,Table_2D,internal_calibration,distCoeffs)
+        axis = np.float32([[55,0,0], [0,55,0], [0,0,-20]]).reshape(-1,3)
+        imgpts, _ = cv2.projectPoints(axis, rvector, tvector,internal_calibration,distCoeffs,)
+        img = draw(img,(left_top_point_x, left_top_point_y),imgpts)
 
     cv2.imwrite('corner.jpg',img)

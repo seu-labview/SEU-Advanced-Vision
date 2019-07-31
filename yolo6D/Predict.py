@@ -37,7 +37,6 @@ def detect(name, cfgfile, weightfile, image_path):
     输入：图片位置
     返回：10个二维点坐标组成的2*10数组
     '''
-    print(image_path)
     # Parameters
     seed         = int(time.time())
     gpus         = '0'     # Specify which gpus to use
@@ -48,7 +47,7 @@ def detect(name, cfgfile, weightfile, image_path):
         torch.cuda.manual_seed(seed)
 
     model = dn(cfgfile)
-    model.print_network()
+    # model.print_network()
     model.load_weights(weightfile)
     img = cv.imread(image_path,1)
     return do_detect(model, img, 0.1, 0.4, 0)
@@ -117,7 +116,6 @@ def predict(name, num):
     y_pose.append(int(y7 * height))  
     y_pose.append(int(y8 * height))
 
-
     for i in range(9):
         cv.circle(img, (x_pose[i],y_pose[i]), 1, (255,0,255),-1)
         string = str(i)
@@ -143,5 +141,5 @@ def predict(name, num):
     corners2D_gt = np.array(corners2D_gt, dtype='float32')
 
     # 保存照片
-    cv.imwrite('predict'+ str(num) + '.jpg',img)
+    cv.imwrite('JPEGImages/predict'+ str(num) + '.jpg',img)
     cv.destroyAllWindows()   
