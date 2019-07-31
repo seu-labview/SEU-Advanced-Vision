@@ -1,6 +1,8 @@
 from pyrealsense2 import pyrealsense2 as rs
 import json
 import numpy as np
+from retrying import retry
+import os
 
 # class Singleton(type):
 #     _instances = {}
@@ -10,18 +12,36 @@ import numpy as np
 #         return cls._instances[cls]
 
 class Camera():
-    # '''单例相机对象'''
+    '''相机函数封装'''
     pipeline = rs.pipeline()
     config = rs.config()
 
     def init(self):
-        print(" 6% 开始初始化相机")
         Camera.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
         Camera.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
         
         # Start pipeline
-        profile = Camera.pipeline.start(Camera.config)
-        frames = Camera.pipeline.wait_for_frames()
+        attempt = 1 # 尝试次数，成功则为-1
+        while(attempt > 0):
+            try:
+                profile = Camera.pipeline.start(Camera.config)
+            except(RuntimeError):
+                print("    \033[0;31m未检测到相机！重试%s/5\033[0m" % attempt-1)
+                attempt += 1
+                if attempt > 4:
+                    os._exit(0)
+            else:
+                attempt = 0
+        while(attempt >= 0):
+            try:
+                frames = Camera.pipeline.wait_for_frames()
+            except(RuntimeError):
+                print("    \033[0;31m相机卡死！重试%s/5\033[0m" % attempt)
+                attempt += 1
+                if attempt > 5:
+                    os._exit(0)
+            else:
+                attempt = -1
         color_frame = frames.get_color_frame()
 
         # Color Intrinsics 
@@ -45,6 +65,7 @@ class Camera():
         Camera.pipeline.stop()
 
     def capture(self, num):
+        Camera.frames = Camera.pipeline.wait_for_frames()
         aligned_frames = Camera.align.process(Camera.frames)
 
         aligned_depth_frame = aligned_frames.get_depth_frame()

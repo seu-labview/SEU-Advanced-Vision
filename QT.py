@@ -227,7 +227,10 @@ class Ui_MainWindow(object):
         self.type.clicked.connect(lambda:self.changetype(round))
         self.type.setGeometry(QtCore.QRect(1200, 300, 20, 20))
         self.timer_camera = QtCore.QTimer()
+        print(" 0% 开始初始化相机")
         camera = Camera()
+        camera.init()
+        print(" 5% \033[0;32m相机初始化完成\033[0m")
         self.pushButton.clicked.connect(lambda:self.open_camera(camera))
         self.pushButton.clicked.connect(self.input1)
         self.pushButton_3.clicked.connect(self.open_camera)
@@ -288,8 +291,6 @@ class Ui_MainWindow(object):
     def open_camera(self, camera):
         if self.timer_camera.isActive() == False:
             self.timer_camera.start(5000)
-        camera.init()
-        print("10% \033[0;32m相机初始化完成\033[0m")
         # camera = Camera()
         _translate = QtCore.QCoreApplication.translate
         # self.X1.setText(_translate("MainWindow",str(X[0])))
@@ -334,14 +335,14 @@ class Ui_MainWindow(object):
         print("    \033[0;34m预测图片%s.jpg...\033[0m" % self.count)
         predict('safeguard', self.count) # 预测
         print("    \033[0;32mpredict%s.jpg已保存\033[0m" % self.count)
-        # predicted = cv2.imread('JPEGImages/predict%s.jpg' % self.count, 1)
-        # self.show(predicted)
-        print("    \033[0;34m定位图片%s.jpg...\033[0m" % self.count)
-        square_desk(self.count)
-        print("    \033[0;32mmarked%s.jpg已保存\033[0m" % self.count)
-        marked_img = 'marked' + str(self.count) + '.jpg'
-        marked = cv2.imread(marked_img,1)
-        self.show(marked)
+        predicted = cv2.imread('JPEGImages/predict%s.jpg' % self.count, 1)
+        self.show(predicted)
+        # print("    \033[0;34m定位图片%s.jpg...\033[0m" % self.count)
+        # square_desk(self.count)
+        # print("    \033[0;32mmarked%s.jpg已保存\033[0m" % self.count)
+        # marked_img = 'marked' + str(self.count) + '.jpg'
+        # marked = cv2.imread(marked_img,1)
+        # self.show(marked)
 
     def close_camera(self, camera):
         if self.timer_camera.isActive():
@@ -357,8 +358,6 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
-    print(" 0% 开始初始化界面")
     ui.setupUi(MainWindow)
-    print(" 5% \033[0;32m界面初始化完成\033[0m")
     MainWindow.show()
     sys.exit(app.exec_())
