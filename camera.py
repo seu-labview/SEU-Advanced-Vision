@@ -17,24 +17,24 @@ class Camera():
     config = rs.config()
 
     def init(self):
-        Camera.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-        Camera.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+        self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+        self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
         
         # Start pipeline
         attempt = 1 # 尝试次数，成功则为-1
         while(attempt > 0):
             try:
-                profile = Camera.pipeline.start(Camera.config)
+                profile = self.pipeline.start(self.config)
             except(RuntimeError):
-                print("    \033[0;31m未检测到相机！重试%s/5\033[0m" % attempt-1)
+                print("    \033[0;31m未检测到相机！重试%s/5\033[0m" % (attempt))
                 attempt += 1
-                if attempt > 4:
+                if attempt > 5:
                     os._exit(0)
             else:
                 attempt = 0
         while(attempt >= 0):
             try:
-                frames = Camera.pipeline.wait_for_frames()
+                frames = self.pipeline.wait_for_frames()
             except(RuntimeError):
                 print("    \033[0;31m相机卡死！重试%s/5\033[0m" % attempt)
                 attempt += 1
@@ -55,18 +55,18 @@ class Camera():
             json.dump(camera_parameters, fp)
 
         align_to = rs.stream.color
-        Camera.align = rs.align(align_to)
+        self.align = rs.align(align_to)
         # T_start = time.time()            
         # FileName = 0
 
-        Camera.frames = Camera.pipeline.wait_for_frames()
+        self.frames = self.pipeline.wait_for_frames()
 
     def __del__(self):
-        Camera.pipeline.stop()
+        self.pipeline.stop()
 
     def capture(self, num):
-        Camera.frames = Camera.pipeline.wait_for_frames()
-        aligned_frames = Camera.align.process(Camera.frames)
+        self.frames = self.pipeline.wait_for_frames()
+        aligned_frames = self.align.process(self.frames)
 
         aligned_depth_frame = aligned_frames.get_depth_frame()
         color_frame = aligned_frames.get_color_frame()
