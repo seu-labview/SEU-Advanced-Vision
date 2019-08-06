@@ -79,6 +79,7 @@ if __name__ == "__main__":
     cv2.namedWindow('test', cv2.WINDOW_NORMAL)
     cv2.namedWindow('gray', cv2.WINDOW_NORMAL)
     cv2.namedWindow('gray_raw', cv2.WINDOW_NORMAL)
+    cv2.namedWindow('Perspective Transformation', cv2.WINDOW_NORMAL)
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     #threshold 
     lower_bgr = np.array([150,160,170]) 
@@ -204,17 +205,25 @@ if __name__ == "__main__":
     Table_3D.append([55,55,0])
     Table_3D = np.array(Table_3D,dtype='float32')
     Table_2D = np.array(Table_2D,dtype='float32')
+    
     retval,rvector,tvector=cv2.solvePnP(Table_3D,Table_2D,internal_calibration,distCoeffs)
     rmatrix,_ =cv2.Rodrigues(rvector)
     axis = np.float32([[55,0,0], [0,55,0], [0,0,-20]]).reshape(-1,3)
     imgpts, _ = cv2.projectPoints(axis, rvector, tvector,internal_calibration,distCoeffs,)
     img = draw(img,(left_top_point_x, left_top_point_y),imgpts)
-
+    
+    print(Table_2D)
+    affine_table_2D = np.float32([[0,0],[0,550],[550,0],[550,550]])
+    print(affine_table_2D)
+    M = cv2.getPerspectiveTransform(Table_2D,affine_table_2D)
+    Perspective_Transformation = cv2.warpPerspective(img,M,(550,550))
+    
     cv2.imwrite('houghlines3.jpg',img)
     cv2.imshow(window_name,test_gray)
     cv2.imshow('gray',edges)
     cv2.imshow('test',img)
     cv2.imshow('gray_raw',gray)
+    cv2.imshow('Perspective Transformation',Perspective_Transformation)
     k = cv2.waitKey(0)
     if k == 27:         # wait for ESC key to exit5
         cv2.destroyAllWindows()
