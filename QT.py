@@ -25,7 +25,7 @@ def make_directories(folder):
 
 class Ui_MainWindow(object):
     count = -1
-    objectnum = 3
+    objectnum = 2
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1400, 700)
@@ -307,13 +307,14 @@ class Ui_MainWindow(object):
 
     def open_camera(self, camera):
         if self.timer_camera.isActive() == False:
-            self.timer_camera.start(3000)
+            self.timer_camera.start(500)
         # camera = Camera()
 
     def thread_init(self):
         self.q = queue.Queue(maxsize = self.objectnum) # 状态队列
         # self.q = []
         self.numq = queue.Queue(maxsize = self.objectnum) # 照片编号队列
+        self.strs = queue.Queue(maxsize = self.objectnum) # 物品名称和识别率队列
 
     def show(self, img):
         '''img为图片数据'''        
@@ -331,40 +332,37 @@ class Ui_MainWindow(object):
         filecad= folder+"JPEGImages/%s.jpg" % self.count
         filedepth= folder+"depth/%s.png" % self.count
         cv2.imwrite(filecad,c)
-        print("    \033[0;32m%s.jpg已保存\033[0m" % self.count)
-        # self.show(c)
+        self.show(c)
         with open(filedepth, 'wb') as f:
             writer = png.Writer(width=d.shape[1], height=d.shape[0], bitdepth=16, greyscale=True)
             zgray2list = d.tolist()
             writer.write(f, zgray2list)
 
-        print("    \033[0;34m预测图片%s.jpg...\033[0m" % self.count)
-        # 预测
-        # predict('safeguard', self.count)
-        # predict('floral_water', self.count)
-            # print("    \033[0;31m开启多线程失败\033[0m")
-        # for i in range(1,1000):
-        #     pool.apply_async(predict,(i,lock))
-        threads = []
+        print("    \033[0;32m%s.jpg已拍摄\033[0m" % self.count)
 
-        threads.append(predict_thread(self.q, 'safeguard', self.numq))
-        threads.append(predict_thread(self.q, 'copico', self.numq))
-        threads.append(predict_thread(self.q, 'floral_water', self.numq))
+        # 预测
+        print("    \033[0;34m预测图片%s.jpg...\033[0m" % self.count)
+        threads = []
+        threads.append(predict_thread(self.q, 'safeguard', self.numq, self.strs))
+        # threads.append(predict_thread(self.q, 'copico', self.numq))
+        threads.append(predict_thread(self.q, 'floral_water', self.numq, self.strs))
         starttime = time.time()
         for th in threads:
             self.numq.put(self.count)
             th.start()
 
         num_done = 0
-        bs = []
+        bs = []; ret = []
+        
         while True:
             if ~self.q.empty():
                 bs.append(self.q.get())
+                ret.append(self.strs.get())
                 num_done += 1
                 if num_done is self.objectnum:
                     break
         
-        draw_predict(bs, c, self.count)
+        draw_predict(bs, ret, c, self.count)
         print("        \033[0;34m用时%s秒\033[0m" % (time.time() - starttime))
         print("    \033[0;32m%s.jpg已保存\033[0m" % self.count)
         predicted = cv2.imread('JPEGImages/%s.jpg' % self.count, 1)
