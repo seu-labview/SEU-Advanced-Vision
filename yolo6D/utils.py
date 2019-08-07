@@ -358,7 +358,7 @@ def get_region_boxes(output, conf_thresh, num_classes, only_objectness=1, valida
     xs8       = output[16] + grid_x
     ys8       = output[17] + grid_y
     det_confs = torch.sigmoid(output[18])
-    cls_confs = torch.nn.Softmax()(Variable(output[19:19+num_classes].transpose(0,1))).data
+    cls_confs = torch.nn.Softmax(1)(Variable(output[19:19+num_classes].transpose(0,1))).data
     cls_max_confs, cls_max_ids = torch.max(cls_confs, 1)
     cls_max_confs = cls_max_confs.view(-1)
     cls_max_ids   = cls_max_ids.view(-1)
@@ -935,7 +935,7 @@ def do_detect(model, img, conf_thresh, nms_thresh, use_cuda=1):
     elif type(img) == np.ndarray: # cv2 image
         img = torch.from_numpy(img.transpose(2,0,1)).float().div(255.0).unsqueeze(0)
     else:
-        print("unknow image type")
+        print("unknown image type")
         exit(-1)
 
     t1 = time.time()

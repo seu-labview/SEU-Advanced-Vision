@@ -1,3 +1,7 @@
 DEBUG
 *.code-workspace
 LINEMOD/
+__pycache__/
+*.weights
+JPEGImages/
+depth/

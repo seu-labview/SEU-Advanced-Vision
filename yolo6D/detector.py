@@ -8,7 +8,7 @@ import cv2
 import sys, os
 sys.path.append(os.path.join(os.getcwd(),'python/'))
 
-import darknet as dn
+from yolo6D.darknet import Darknet as dn
 
 def array_to_image(arr):
     arr = arr.transpose(2,0,1)

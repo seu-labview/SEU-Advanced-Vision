@@ -1,14 +1,8 @@
 import numpy as np
-import cv2
+from cv2 import cv2
 import os
 import math
-# camera intrinsic and distcoeffs
-def get_camera_intrinsic():
-    K = np.zeros((3, 3), dtype='float64')
-    K[0, 0], K[0, 2] = 618.3287, 309.8568
-    K[1, 1], K[1, 2] = 618.3289, 237.4846
-    K[2, 2] = 1.
-    return K
+from utils import get_camera_intrinsic
 
 internal_calibration = get_camera_intrinsic()
 internal_calibration = np.array(internal_calibration, dtype='float32')
@@ -62,6 +56,7 @@ def getcrosspoint(rho1,theta1,rho2,theta2):
     cross_y = int(cross_y)
     print(corss_x,cross_y)
     return (corss_x,cross_y)
+
 if __name__ == "__main__":
     datacfg = 'data.data'
     data_options  = read_data_cfg(datacfg)

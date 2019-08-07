@@ -5,11 +5,11 @@ import os
 import random
 from PIL import Image
 import numpy as np
-from image import *
+from yolo6D.image import *
 import torch
 
 from torch.utils.data import Dataset
-from utils import read_truths_args, read_truths, get_all_files
+from yolo6D.utils import read_truths_args, read_truths, get_all_files
 
 class listDataset(Dataset):
     '''
