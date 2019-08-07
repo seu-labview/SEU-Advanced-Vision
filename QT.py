@@ -365,14 +365,15 @@ class Ui_MainWindow(object):
         draw_predict(bs, ret, c, self.count)
         print("        \033[0;34m用时%s秒\033[0m" % (time.time() - starttime))
         print("    \033[0;32m%s.jpg已保存\033[0m" % self.count)
-        predicted = cv2.imread('JPEGImages/%s.jpg' % self.count, 1)
-        self.show(predicted)
-        # print("    \033[0;34m定位图片%s.jpg...\033[0m" % self.count)
-        # square_desk(self.count)
-        # print("    \033[0;32mmarked%s.jpg已保存\033[0m" % self.count)
+        # predicted = cv2.imread('JPEGImages/%s.jpg' % self.count, 1)
+        # self.show(predicted)
+        print("    \033[0;34m定位图片%s.jpg...\033[0m" % self.count)
+        square_desk(self.count)
+        print("    \033[0;32mmarked%s.jpg已保存\033[0m" % self.count)
         # marked_img = 'marked' + str(self.count) + '.jpg'
-        # marked = cv2.imread(marked_img,1)
-        # self.show(marked)
+        marked_img = 'corner.jpg'
+        marked = cv2.imread(marked_img,1)
+        self.show(marked)
 
     def close_camera(self, camera):
         if self.timer_camera.isActive():

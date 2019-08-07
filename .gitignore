@@ -5,3 +5,5 @@ __pycache__/
 *.weights
 JPEGImages/
 depth/
+.idea/
+intrinsics.json
