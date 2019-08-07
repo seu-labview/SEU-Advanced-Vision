@@ -297,6 +297,8 @@ class Ui_Form(object):
         f.write(self.lineEdit_9.text()+'\n')
         f.write(self.lineEdit_10.text()+'\n')
         f.close()
+        output = cv2.imread("corner.jpg")
+        cv2.imshow("corner.jpg", output)
 
 
 if __name__ == '__main__':    
