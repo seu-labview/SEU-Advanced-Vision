@@ -133,6 +133,11 @@ def thres(img, x):
     return
 
 class Ui_Form(object):
+    if len(sys.argv) < 2:
+        print('\033[0;31mUsage:\033[0m')
+        print('\033[0;31m   python3 debugger.py picture_num_in_`JPEGImages/`\033[0m')
+        os._exit(-1)
+
     num = sys.argv[1]
     img = cv2.imread('JPEGImages/' + str(num) + '.jpg', 1)
 
@@ -294,8 +299,7 @@ class Ui_Form(object):
         f.close()
 
 
-if __name__ == '__main__':
-    
+if __name__ == '__main__':    
     #弹出窗口
     app = QtWidgets.QApplication(sys.argv)
     widget = QtWidgets.QWidget()
