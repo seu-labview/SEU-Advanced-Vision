@@ -55,13 +55,13 @@ def getcrosspoint(rho1,theta1,rho2,theta2):
     print(corss_x,cross_y)
     return (corss_x,cross_y)
 
-def square_desk(num):
+def square_desk(num, canny, hough):
     '''
     输入：图片编号
     输出：坐标系
     导出：带坐标系图片
     '''
-    img_path = 'JPEGImages/predict' + str(num) + '.jpg'
+    img_path = 'JPEGImages/' + str(num) + '.jpg'
     img = cv2.imread(img_path,1)
     img = cv2.resize(img,(640,480), interpolation = cv2.INTER_CUBIC)
 
@@ -79,8 +79,8 @@ def square_desk(num):
     test_gray = cv2.morphologyEx(test_gray, cv2.MORPH_OPEN, kernel)
     kernel2 = np.ones((5,5),np.uint8)
     test_gray = cv2.morphologyEx(test_gray, cv2.MORPH_CLOSE, kernel2)
-    edges = cv2.Canny(test_gray,100,150,apertureSize = 3)
-    lines = cv2.HoughLines(edges,1,np.pi/180,80)
+    edges = cv2.Canny(test_gray, canny[0], canny[1], canny[2])
+    lines = cv2.HoughLines(edges, hough[0], hough[1], hough[2])
     top_line_theta = []
     top_line_rho = []
     left_line_theta = []

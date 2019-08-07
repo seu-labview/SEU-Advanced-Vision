@@ -3,5 +3,8 @@ DEBUG
 LINEMOD/
 __pycache__/
 *.weights
-JPEGImages/
+JPEGImages/*
 depth/
+.idea/
+intrinsics.json
+!JPEGImages/13.jpg

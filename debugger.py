@@ -1,16 +1,18 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
+# from QtWidgets import QApplication, QMainWindow
 import PyQt5
-import cv2    
+from cv2 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import corner
 import math
 import os
+
 global point1, point2
-def on_mouse(event, x, y, flags, param):
-    global img, point1, point2
+
+def on_mouse(event, x, y, flags, img):
+    global point1, point2
     img2 = img.copy()
     if event == cv2.EVENT_LBUTTONDOWN:         #左键点击
         point1 = (x,y)
@@ -106,7 +108,7 @@ def calcAndDrawHist(image, color):
 
 
 # 二值化
-def my_fun(img, x):
+def thres(img, x):
     red_low = x[0]
     red_high = x[1]
     green_low = x[2]
@@ -130,9 +132,13 @@ def my_fun(img, x):
     cv2.imshow('binary', im_new)
     return
 
-
 class Ui_Form(object):
+    num = sys.argv[1]
+    img = cv2.imread('JPEGImages/' + str(num) + '.jpg', 1)
+
     def setupUi(self, Form):
+        cv2.namedWindow('image')
+        cv2.setMouseCallback('image', on_mouse, self.img)
         Form.setObjectName("Form")
         Form.resize(855, 664)
         self.label = QtWidgets.QLabel(Form)
@@ -227,6 +233,7 @@ class Ui_Form(object):
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form) 
+        cv2.imshow('image', self.img)
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
@@ -247,7 +254,7 @@ class Ui_Form(object):
         self.label_13.setText(_translate("Setting", "θ的精度"))
         self.pushButton_2.setText(_translate("Setting", "corner"))
 
-
+    
     def setting(self):
         red_low=self.lineEdit.text()
         red_high=self.lineEdit_4.text()
@@ -262,7 +269,7 @@ class Ui_Form(object):
         x[3] = green_high
         x[4] = blue_low
         x[5] = blue_high
-        my_fun(img, x)
+        thres(self.img, x)
 
     def setting_2(self):
         ca = np.zeros((3, 1))
@@ -276,6 +283,7 @@ class Ui_Form(object):
         ho1 = self.lineEdit_11.text()
         ho[1] = int(ho1) * math.pi/180
         ho[2] = self.lineEdit_12.text()
+        corner.square_desk(self.num ,ca, ho)
         f= open("data.txt","w+")
         f.write(self.lineEdit_3.text()+'\n')
         f.write(self.lineEdit_12.text()+'\n')
@@ -284,14 +292,9 @@ class Ui_Form(object):
         f.write(self.lineEdit_9.text()+'\n')
         f.write(self.lineEdit_10.text()+'\n')
         f.close()
-        corner.fun_corner(ca, ho)
 
-if __name__ == '__main__':  
-    global img
-    img = cv2.imread('sss_Color.png')           # 待处理的图片
-    cv2.namedWindow('image')
-    cv2.setMouseCallback('image', on_mouse)
-    cv2.imshow('image', img)
+
+if __name__ == '__main__':
     
     #弹出窗口
     app = QtWidgets.QApplication(sys.argv)
@@ -302,7 +305,5 @@ if __name__ == '__main__':
     widget.show()
     sys.exit(app.exec_())   
     
-
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-

@@ -78,7 +78,7 @@ def draw_predict(bss, strss, img, num):
         j += 1
     # corners2D_gt = np.array(corners2D_gt, dtype='float32')
     # 保存照片
-    cv.imwrite('JPEGImages/' + str(num) + '.jpg',img)
+    cv.imwrite('JPEGImages/predict' + str(num) + '.jpg',img)
 
 def makedirs(path):
     '''Create new directory'''
