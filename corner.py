@@ -226,7 +226,7 @@ def square_line(origin, edges, hough):
         axis = np.float32([[55,0,0], [0,55,0], [0,0,-20]]).reshape(-1,3)
         imgpts, _ = cv2.projectPoints(axis, rvector, tvector,internal_calibration,distCoeffs,)
         lined = draw(img,(left_top_point_x, left_top_point_y),imgpts)
-    return lined
+    return lined, Table_2D
 
 def square_desk(num, x, canny, hough):
     '''
@@ -236,16 +236,13 @@ def square_desk(num, x, canny, hough):
     '''
     img_path = 'JPEGImages/' + str(num) + '.jpg'
     img = cv2.imread(img_path,1)
-    internal_calibration = get_camera_intrinsic()
-    internal_calibration = np.array(internal_calibration, dtype='float32')
-    distCoeffs = np.zeros((8, 1), dtype='float32')
 
     thresed = thres(img, x)
 
     edges = square_canny(thresed, canny)
-    lined = square_line(img, edges, hough)
+    lined, Table_2D = square_line(img, edges, hough)
     # affine_table_2D = np.float32([[0,0],[0,550],[550,0],[550,550]])
     # M = cv2.getPerspectiveTransform(Table_2D,affine_table_2D)
     # marked = cv2.warpPerspective(lined,M,(550,550)) # Perspective_Transformation
     cv2.imwrite('JPEGImages/marked' + str(num) + '.jpg',lined)
-    return lined
+    return lined, Table_2D

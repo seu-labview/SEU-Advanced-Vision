@@ -45,55 +45,7 @@ def on_mouse(event, x, y, flags, img):
         plt.legend(loc='best')
         plt.xlim([0, 256])
         plt.show()
-        '''
-        #方法二：显示在三张图上
-        original_img = cv2.imread("500.jpg")
-        img = cv2.resize(original_img,None,fx=0.6,fy=0.6,interpolation = cv2.INTER_CUBIC)
-        b, g, r = cv2.split(img)  
-  
-        histImgB = calcAndDrawHist(b, [255, 0, 0])  
-        histImgG = calcAndDrawHist(g, [0, 255, 0])  
-        histImgR = calcAndDrawHist(r, [0, 0, 255])  
 
-        cv2.imshow("histImgB", histImgB)  
-        cv2.imshow("histImgG", histImgG)  
-        cv2.imshow("histImgR", histImgR)  
-        plt.show()
-        cv2.imshow("Img", img)  
-        '''
-        '''
-        #方法三：
-        img = cv2.imread('500.jpg')
-        color = ('b','g','r')
-        plt.subplot(121)
-        plt.imshow(img)
-        plt.subplot(122)
-        for i,col in enumerate(color):
-            histr = cv2.calcHist([img],[i],None,[256],[0,256])
-            plt.plot(histr,color = col)
-            plt.xlim([0,256])
- 
-        # 使用Mask计算某区域直方图
-        img_gray = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
-        mask = np.zeros(img_gray.shape[:2],np.uint8)
-        mask[100:200,100:200] = 255
-        masked_img = cv2.bitwise_and(img_gray,img_gray,mask = mask)
-        hist_full = cv2.calcHist([img],[0],None,[256],[0,256])
-        hist_mask = cv2.calcHist([img],[0],mask,[256],[0,256])
- 
-        plt.figure()
-        plt.subplot(221)
-        plt.imshow(img_gray,'gray')
-        plt.subplot(222)
-        plt.imshow(mask,'gray')
-        plt.subplot(223)
-        plt.imshow(masked_img,'gray')
-        plt.subplot(224)
-        plt.plot(hist_full)
-        plt.plot(hist_mask)
-        plt.xlim([0,256])
-        plt.show()
-        '''
 #
 def calcAndDrawHist(image, color):  
     hist= cv2.calcHist([image], [0], None, [256], [0.0,255.0])  
@@ -286,8 +238,6 @@ class Ui_Form(object):
     def setting_2(self):
         ca = np.zeros((3, 1))
         ho = np.zeros((3, 1))
-        # ca = (100, 150, 3)
-        # ho = (1, np.pi / 180, 80)
         ca[0] = self.lineEdit_7.text()
         ca[1] = self.lineEdit_8.text()
         ca[2] = self.lineEdit_9.text()

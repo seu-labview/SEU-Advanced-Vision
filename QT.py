@@ -13,7 +13,7 @@ import queue
 
 from yolo6D.Predict import predict, predict_thread, draw_predict
 from camera import Camera
-from corner import square_desk
+import corner
 import numpy as np
 import math
 
@@ -382,15 +382,12 @@ class Ui_MainWindow(object):
             writer = png.Writer(width=d.shape[1], height=d.shape[0], bitdepth=16, greyscale=True)
             zgray2list = d.tolist()
             writer.write(f, zgray2list)
-
         print("    \033[0;32m%s.jpg已拍摄\033[0m" % self.count)
+
         print("    \033[0;34m定位图片%s.jpg...\033[0m" % self.count)
-        lined = square_desk(self.count, self.x, self.ca, self.ho)
+        lined = corner.square_desk(self.count, self.x, self.ca, self.ho)
         print("    \033[0;32mmarked%s.jpg已保存\033[0m" % self.count)
-        # marked_img = 'marked' + str(self.count) + '.jpg'
-        # marked_img = 'corner.jpg'
-        # marked = cv2.imread(marked_img,1)
-        # self.show(marked)
+
         # 预测
         print("    \033[0;34m预测图片%s.jpg...\033[0m" % self.count)
         threads = []
