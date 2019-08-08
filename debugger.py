@@ -30,7 +30,7 @@ def on_mouse(event, x, y, flags, img):
         width = abs(point1[0] - point2[0])
         height = abs(point1[1] -point2[1])
         cut_img = img[min_y:min_y+height, min_x:min_x+width]
-        cv2.imwrite('500.jpg', cut_img)
+        # cv2.imwrite('500.jpg', cut_img)
         #显示RGB三个通道的图像
         
         #方法一：显示在一张图上
@@ -106,32 +106,6 @@ def calcAndDrawHist(image, color):
         cv2.line(histImg,(h,256), (h,256-intensity), color)  
     return histImg
 
-
-# 二值化
-def thres(img, x):
-    red_low = x[0]
-    red_high = x[1]
-    green_low = x[2]
-    green_high = x[3]
-    blue_low = x[4]
-    blue_high = x[5]
-    height, width = img.shape[:2]
-    im_new = np.zeros((height, width, 1), np.uint8)
-    for i in range(height):
-        for j in range(width):
-            judger = 1
-            temp = img[i, j]
-            if temp[0] < red_low or temp[0] > red_high:
-                judger = 0
-            if temp[1] < green_low or temp[1] > green_high:
-                judger = 0
-            if temp[2] < blue_low or temp[2] > blue_high:
-                judger = 0
-            if judger:
-                im_new[i, j] = 255
-    cv2.imshow('binary', im_new)
-    return
-
 class Ui_Form(object):
     if len(sys.argv) < 2:
         print('\033[0;31mUsage:\033[0m')
@@ -140,6 +114,7 @@ class Ui_Form(object):
 
     num = sys.argv[1]
     img = cv2.imread('JPEGImages/' + str(num) + '.jpg', 1)
+    x = np.zeros((6, 1))
 
     def setupUi(self, Form):
         cv2.namedWindow('image')
@@ -259,7 +234,6 @@ class Ui_Form(object):
         self.label_13.setText(_translate("Setting", "θ的精度"))
         self.pushButton_2.setText(_translate("Setting", "corner"))
 
-    
     def setting(self):
         red_low=self.lineEdit.text()
         red_high=self.lineEdit_4.text()
@@ -267,14 +241,47 @@ class Ui_Form(object):
         green_high=self.lineEdit_5.text()
         blue_low=self.lineEdit_3.text()
         blue_high=self.lineEdit_6.text()
-        x = np.zeros((6, 1))
-        x[0] = red_low
-        x[1] = red_high
-        x[2] = green_low
-        x[3] = green_high
-        x[4] = blue_low
-        x[5] = blue_high
-        thres(self.img, x)
+        options = dict()
+        with open('data1.txt', 'r') as fp:
+            lines = fp.readlines()
+            for line in lines:
+                line = line.strip()
+                if line == '':
+                    continue
+                key,value = line.split('=')
+                key = key.strip()
+                value = value.strip()
+                options[key] = value
+            if red_low == '':
+                red_low = options['red_low']
+            if red_high == '':
+                red_high = options['red_high']
+            if green_low == '':
+                green_low = options['green_low']
+            if green_high == '':
+                green_high = options['green_high']
+            if blue_low == '':
+                blue_low = options['blue_low']
+            if blue_high == '':
+                blue_high = options['blue_high']
+            fp.close()
+        self.x[0] = red_low
+        self.x[1] = red_high
+        self.x[2] = green_low
+        self.x[3] = green_high
+        self.x[4] = blue_low
+        self.x[5] = blue_high
+        img_new = corner.thres(self.img, self.x)
+        cv2.imshow('binary', img_new)
+        f= open("data1.txt","w+")
+        y = ["red_low = ", "red_high = ", "green_low = ", "green_high = ", "blue_low = ", "blue_high = "]
+        f.write(y[0]+str(int(self.x[0]))+'\n')
+        f.write(y[1]+str(int(self.x[1]))+'\n')
+        f.write(y[2]+str(int(self.x[2]))+'\n')
+        f.write(y[3]+str(int(self.x[3]))+'\n')
+        f.write(y[4]+str(int(self.x[4]))+'\n')
+        f.write(y[5]+str(int(self.x[5]))+'\n')
+        f.close()
 
     def setting_2(self):
         ca = np.zeros((3, 1))
@@ -288,8 +295,13 @@ class Ui_Form(object):
         ho1 = self.lineEdit_11.text()
         ho[1] = int(ho1) * math.pi/180
         ho[2] = self.lineEdit_12.text()
-        corner.square_desk(self.num ,ca, ho)
-        f= open("data.txt","w+")
+        img = corner.thres(self.img, self.x)
+        edges = corner.square_canny(img, ca)
+        cv2.imshow('edges', edges)
+        lines = corner.square_line(self.img, edges, ho)
+        cv2.imshow('lines', lines)
+
+        f= open("data2.txt","w+")
         y = ["canny_threshold_1 = ", "canny_threshold_2 = ", "sobel = ", "hough_rho = ", "hough_theta = ", "hough_threshold = "]
         f.write(y[0]+self.lineEdit_7.text()+'\n')
         f.write(y[1]+self.lineEdit_8.text()+'\n')
@@ -298,11 +310,8 @@ class Ui_Form(object):
         f.write(y[4]+self.lineEdit_11.text()+'\n')
         f.write(y[5]+self.lineEdit_12.text()+'\n')
         f.close()
-        output = cv2.imread("corner.jpg")
-        cv2.imshow("corner.jpg", output)
 
-
-if __name__ == '__main__':    
+if __name__ == '__main__':
     #弹出窗口
     app = QtWidgets.QApplication(sys.argv)
     widget = QtWidgets.QWidget()
@@ -310,7 +319,7 @@ if __name__ == '__main__':
     ui = Ui_Form()
     ui.setupUi(widget)
     widget.show()
-    sys.exit(app.exec_())   
+    sys.exit(app.exec_())
     
     cv2.waitKey(0)
     cv2.destroyAllWindows()

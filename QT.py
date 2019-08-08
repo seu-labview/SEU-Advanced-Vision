@@ -14,6 +14,8 @@ import queue
 from yolo6D.Predict import predict, predict_thread, draw_predict
 from camera import Camera
 from corner import square_desk
+import numpy as np
+import math
 
 RECORD_LENGTH = 18
 
@@ -22,6 +24,48 @@ def make_directories(folder):
         os.makedirs(folder+"JPEGImages/")
     if not os.path.exists(folder+"depth/"):
         os.makedirs(folder+"depth/")
+
+def ReadData():
+    fp = open('data1.txt', 'r')
+    lines = fp.readlines()
+    options = dict()
+    x = np.zeros((6, 1))
+    for line in lines:
+        line = line.strip()
+        if line == '':
+            continue
+        key,value = line.split('=')
+        key = key.strip()
+        value = value.strip()
+        options[key] = value
+    x[0] = options['red_low']
+    x[1] = options['red_high']
+    x[2] = options['green_low']
+    x[3] = options['green_high']
+    x[4] = options['blue_low']
+    x[5] = options['blue_high']
+    fp.close()
+
+    ca = np.zeros((3, 1))
+    ho = np.zeros((3, 1))
+    fp = open('data2.txt', 'r')
+    lines = fp.readlines()
+    for line in lines:
+        line = line.strip()
+        if line == '':
+            continue
+        key,value = line.split('=')
+        key = key.strip()
+        value = value.strip()
+        options[key] = value
+    ca[0] = options['canny_threshold_1']
+    ca[1] = options['canny_threshold_2']
+    ca[2] = options['sobel']
+    ho[0] = options['hough_rho']
+    ho[1] = int(options['hough_theta']) * math.pi/180
+    ho[2] = options['hough_threshold']
+    fp.close()
+    return x, ca, ho
 
 class Ui_MainWindow(object):
     count = -1
@@ -231,10 +275,11 @@ class Ui_MainWindow(object):
         self.type.clicked.connect(lambda:self.changetype(round))
         self.type.setGeometry(QtCore.QRect(1100, 550, 100, 100))
         self.timer_camera = QtCore.QTimer()
-        print(" 0% 开始初始化相机")
+        self.x, self.ca, self.ho = ReadData()
+        print(" 2% 开始初始化相机")
         camera = Camera()
         camera.init()
-        print(" 5% \033[0;32m相机初始化完成\033[0m")
+        print(" 6% \033[0;32m相机初始化完成\033[0m")
         self.thread_init()
         print("10% \033[0;32m多线程初始化完成\033[0m")
         self.START.clicked.connect(lambda:self.open_camera(camera))
@@ -339,7 +384,13 @@ class Ui_MainWindow(object):
             writer.write(f, zgray2list)
 
         print("    \033[0;32m%s.jpg已拍摄\033[0m" % self.count)
-
+        print("    \033[0;34m定位图片%s.jpg...\033[0m" % self.count)
+        lined = square_desk(self.count, self.x, self.ca, self.ho)
+        print("    \033[0;32mmarked%s.jpg已保存\033[0m" % self.count)
+        # marked_img = 'marked' + str(self.count) + '.jpg'
+        # marked_img = 'corner.jpg'
+        # marked = cv2.imread(marked_img,1)
+        # self.show(marked)
         # 预测
         print("    \033[0;34m预测图片%s.jpg...\033[0m" % self.count)
         threads = []
@@ -362,18 +413,12 @@ class Ui_MainWindow(object):
                 if num_done is self.objectnum:
                     break
         
-        draw_predict(bs, ret, c, self.count)
+        draw_predict(bs, ret, lined, self.count)
         print("        \033[0;34m用时%s秒\033[0m" % (time.time() - starttime))
         print("    \033[0;32m%s.jpg已保存\033[0m" % self.count)
-        # predicted = cv2.imread('JPEGImages/%s.jpg' % self.count, 1)
-        # self.show(predicted)
-        print("    \033[0;34m定位图片%s.jpg...\033[0m" % self.count)
-        square_desk(self.count)
-        print("    \033[0;32mmarked%s.jpg已保存\033[0m" % self.count)
-        # marked_img = 'marked' + str(self.count) + '.jpg'
-        marked_img = 'corner.jpg'
-        marked = cv2.imread(marked_img,1)
-        self.show(marked)
+        predicted = cv2.imread('JPEGImages/predict%s.jpg' % self.count, 1)
+        self.show(predicted)
+
 
     def close_camera(self, camera):
         if self.timer_camera.isActive():

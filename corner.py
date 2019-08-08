@@ -5,6 +5,8 @@ import math
 import sys
 from yolo6D.utils import get_camera_intrinsic
 from yolo6D.Predict import draw
+from Kmeans import Cluster
+import copy
 
 # def draw(img, corner, imgpts):
 #     img = cv2.line(img, corner, tuple(imgpts[0].ravel()), (255,0,0), 3)
@@ -55,32 +57,55 @@ def getcrosspoint(rho1,theta1,rho2,theta2):
     print(corss_x,cross_y)
     return (corss_x,cross_y)
 
-def square_desk(num, canny, hough):
-    '''
-    输入：图片编号
-    输出：坐标系
-    导出：带坐标系图片
-    '''
-    img_path = 'JPEGImages/' + str(num) + '.jpg'
-    img = cv2.imread(img_path,1)
+# 二值化
+def thres(img, x):
+    red_low = x[0]
+    red_high = x[1]
+    green_low = x[2]
+    green_high = x[3]
+    blue_low = x[4]
+    blue_high = x[5]
+    height, width = img.shape[:2]
+    im_new = np.zeros((height, width, 1), np.uint8)
+    for i in range(height):
+        for j in range(width):
+            judger = 1
+            temp = img[i, j]
+            if temp[0] < red_low or temp[0] > red_high:
+                judger = 0
+            if temp[1] < green_low or temp[1] > green_high:
+                judger = 0
+            if temp[2] < blue_low or temp[2] > blue_high:
+                judger = 0
+            if judger:
+                im_new[i, j] = 255
+    return im_new
+
+def square_canny(img, canny):
     img = cv2.resize(img,(640,480), interpolation = cv2.INTER_CUBIC)
-
-    internal_calibration = get_camera_intrinsic()
-    internal_calibration = np.array(internal_calibration, dtype='float32')
-    distCoeffs = np.zeros((8, 1), dtype='float32')
-
-    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    # gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     # threshold
-    lower_gray = np.array([140])
-    upper_gray = np.array([200])
-    test_gray = cv2.inRange(gray,lower_gray,upper_gray)
-    kernel = np.ones((3,3),np.uint8)
-    test_gray = cv2.morphologyEx(test_gray, cv2.MORPH_CLOSE, kernel)
+    # lower_gray = np.array([140])
+    # upper_gray = np.array([200])
+    # test_gray = cv2.inRange(gray,lower_gray,upper_gray)
+    kernel = np.ones((9,9),np.uint8)
+    test_gray = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
     test_gray = cv2.morphologyEx(test_gray, cv2.MORPH_OPEN, kernel)
-    kernel2 = np.ones((5,5),np.uint8)
+    kernel2 = np.ones((9,9),np.uint8)
     test_gray = cv2.morphologyEx(test_gray, cv2.MORPH_CLOSE, kernel2)
     edges = cv2.Canny(test_gray, canny[0], canny[1], canny[2])
+    return edges
+
+def square_line(origin, edges, hough):
+    internal_calibration = get_camera_intrinsic()
+    internal_calibration = np.array(internal_calibration, dtype='float32')    
+    distCoeffs = np.zeros((8, 1), dtype='float32')
+    img = copy.copy(origin)
     lines = cv2.HoughLines(edges, hough[0], hough[1], hough[2])
+    
+    # rho：ρ，图片左上角向直线所做垂线的长度
+    # theta：Θ，图片左上角向直线所做垂线与顶边夹角
+    # 垂足高于原点时，ρ为负，Θ为垂线关于原点的对称线与顶边的夹角
     top_line_theta = []
     top_line_rho = []
     left_line_theta = []
@@ -89,29 +114,32 @@ def square_desk(num, canny, hough):
     right_line_rho = []
     bottom_line_theta = []
     bottom_line_rho = []
+    horizon = []
     summ = 0
     final_lines = np.zeros((4,2))
-    if lines is None:
+    if len(lines) < 4:
         print("    \033[0;31m未检测到方桌！\033[0m")
+        return edges
     else:
         for line in lines:
             for rho,theta in line:
-
-                if theta > (math.pi*(2/3)):
-                    if abs(rho) <320:
-                        right_line_theta.append(theta)
-                        right_line_rho.append(rho)
-                elif theta > (math.pi/4):
-                    if abs(rho) <320:
-                        top_line_theta.append(theta)
-                        top_line_rho.append(rho)
-                    else:
-                        bottom_line_theta.append(theta)
-                        bottom_line_rho.append(rho)
-                else:
+                if (theta > math.pi / 3 and theta < math.pi * 2 / 3): # 横线
+                    horizon.append(line)
+                elif rho < 0: # 右边
+                    right_line_rho.append(rho)
+                    right_line_theta.append(theta)
+                else: # 左边
                     left_line_theta.append(theta)
                     left_line_rho.append(rho)
-            
+        top, bottom = Cluster(horizon, 120, 360) # 将横线依据abs(rho)分为上下
+        for line in top:
+            for rho, theta in line:
+                top_line_rho.append(rho)
+                top_line_theta.append(theta)
+        for line in bottom:
+            for rho, theta in line:
+                bottom_line_rho.append(rho)
+                bottom_line_theta.append(theta)
 
         for i in right_line_theta:
             summ +=i
@@ -197,6 +225,27 @@ def square_desk(num, canny, hough):
         _,rvector,tvector=cv2.solvePnP(Table_3D,Table_2D,internal_calibration,distCoeffs)
         axis = np.float32([[55,0,0], [0,55,0], [0,0,-20]]).reshape(-1,3)
         imgpts, _ = cv2.projectPoints(axis, rvector, tvector,internal_calibration,distCoeffs,)
-        img = draw(img,(left_top_point_x, left_top_point_y),imgpts)
+        lined = draw(img,(left_top_point_x, left_top_point_y),imgpts)
+    return lined
 
-    cv2.imwrite('corner.jpg',img)
+def square_desk(num, x, canny, hough):
+    '''
+    输入：图片编号
+    输出：坐标系
+    导出：带坐标系图片
+    '''
+    img_path = 'JPEGImages/' + str(num) + '.jpg'
+    img = cv2.imread(img_path,1)
+    internal_calibration = get_camera_intrinsic()
+    internal_calibration = np.array(internal_calibration, dtype='float32')
+    distCoeffs = np.zeros((8, 1), dtype='float32')
+
+    thresed = thres(img, x)
+
+    edges = square_canny(thresed, canny)
+    lined = square_line(img, edges, hough)
+    # affine_table_2D = np.float32([[0,0],[0,550],[550,0],[550,550]])
+    # M = cv2.getPerspectiveTransform(Table_2D,affine_table_2D)
+    # marked = cv2.warpPerspective(lined,M,(550,550)) # Perspective_Transformation
+    cv2.imwrite('JPEGImages/marked' + str(num) + '.jpg',lined)
+    return lined

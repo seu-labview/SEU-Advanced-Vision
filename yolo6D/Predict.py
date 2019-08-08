@@ -112,7 +112,7 @@ def predict(name, num):
     输入: 物体名称，图片编号
     返回：长度为20的数组，前18为坐标，后接物品名和识别率
     '''
-    img_name = 'JPEGImages/' + str(num) + '.jpg'
+    img_name = 'JPEGImages/marked' + str(num) + '.jpg'
 
     boxes = detect(str(name), 'yolo6D/yolo-pose.cfg', 'weights/' + name + '.weights', img_name)
     best_conf_est = -1
