@@ -13,17 +13,19 @@ import queue
 
 from yolo6D.Predict import predict, predict_thread, draw_predict
 from camera import Camera
-from corner import square_desk
+import corner
 import numpy as np
 import math
 
 RECORD_LENGTH = 18
+
 
 def make_directories(folder):
     if not os.path.exists(folder+"JPEGImages/"):
         os.makedirs(folder+"JPEGImages/")
     if not os.path.exists(folder+"depth/"):
         os.makedirs(folder+"depth/")
+
 
 def ReadData():
     fp = open('data1.txt', 'r')
@@ -34,7 +36,7 @@ def ReadData():
         line = line.strip()
         if line == '':
             continue
-        key,value = line.split('=')
+        key, value = line.split('=')
         key = key.strip()
         value = value.strip()
         options[key] = value
@@ -54,7 +56,7 @@ def ReadData():
         line = line.strip()
         if line == '':
             continue
-        key,value = line.split('=')
+        key, value = line.split('=')
         key = key.strip()
         value = value.strip()
         options[key] = value
@@ -67,9 +69,11 @@ def ReadData():
     fp.close()
     return x, ca, ho
 
+
 class Ui_MainWindow(object):
     count = -1
-    objectnum = 2
+    objectnum = 3
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1400, 700)
@@ -96,7 +100,8 @@ class Ui_MainWindow(object):
         self.horizontalLayoutWidget = QtWidgets.QWidget(self.centralWidget)
         self.horizontalLayoutWidget.setGeometry(QtCore.QRect(50, 89, 640, 480))
         self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
+        self.horizontalLayout = QtWidgets.QHBoxLayout(
+            self.horizontalLayoutWidget)
         self.horizontalLayout.setContentsMargins(11, 11, 11, 11)
         self.horizontalLayout.setSpacing(6)
         self.horizontalLayout.setObjectName("horizontalLayout")
@@ -272,7 +277,7 @@ class Ui_MainWindow(object):
         self.type.setCheckable(True)
         round = 1
         self.type.setChecked(round)
-        self.type.clicked.connect(lambda:self.changetype(round))
+        self.type.clicked.connect(lambda: self.changetype(round))
         self.type.setGeometry(QtCore.QRect(1100, 550, 100, 100))
         self.timer_camera = QtCore.QTimer()
         self.x, self.ca, self.ho = ReadData()
@@ -282,12 +287,12 @@ class Ui_MainWindow(object):
         print(" 6% \033[0;32m相机初始化完成\033[0m")
         self.thread_init()
         print("10% \033[0;32m多线程初始化完成\033[0m")
-        self.START.clicked.connect(lambda:self.open_camera(camera))
+        self.START.clicked.connect(lambda: self.open_camera(camera))
         # self.START.clicked.connect(self.display)
         # self.pushButton_3.clicked.connect(self.open_camera)
         # self.pushButton_3.clicked.connect(self.input1)
-        self.timer_camera.timeout.connect(lambda:self.capture_camera(camera))
-        self.STOP.clicked.connect(lambda:self.close_camera(camera))
+        self.timer_camera.timeout.connect(lambda: self.capture_camera(camera))
+        self.STOP.clicked.connect(lambda: self.close_camera(camera))
         self.STOP.clicked.connect(self.input2)
         # self.pushButton_4.clicked.connect(lambda:self.close_camera(camera))
         # self.pushButton_4.clicked.connect(self.input2)
@@ -322,28 +327,33 @@ class Ui_MainWindow(object):
         self.label_33.setText(_translate("MainWindow", "目标4朝向角Angle"))
         self.label_35.setText(_translate("MainWindow", "目标4距离Radius"))
 
-    def display(self, data):
+    def display(self, datas):
         '''
         输入：data：物品数*4数组
         '''
         _translate = QtCore.QCoreApplication.translate
-        self.X1.setText(_translate("MainWindow",str(data[[0]][0])))
-        self.X2.setText(_translate("MainWindow",str(data[[1]][0])))
-        self.X3.setText(_translate("MainWindow",str(data[[2]][0])))
-        self.X4.setText(_translate("MainWindow",str(data[[3]][0])))
-        self.Y1.setText(_translate("MainWindow",str(data[[0]][1])))
-        self.Y2.setText(_translate("MainWindow",str(data[[1]][1])))
-        self.Y3.setText(_translate("MainWindow",str(data[[2]][1])))
-        self.Y4.setText(_translate("MainWindow",str(data[[3]][1])))
-        self.R1.setText(_translate("MainWindow",str(data[[0]][2])))
-        self.R2.setText(_translate("MainWindow",str(data[[1]][2])))
-        self.R3.setText(_translate("MainWindow",str(data[[2]][2])))
-        self.R4.setText(_translate("MainWindow",str(data[[3]][2])))
-        self.A1.setText(_translate("MainWindow",str(data[[0]][3])))
-        self.A2.setText(_translate("MainWindow",str(data[[1]][3])))
-        self.A3.setText(_translate("MainWindow",str(data[[2]][3])))
-        self.A4.setText(_translate("MainWindow",str(data[[3]][3])))
-        
+        self.num.setText(_translate("MainWindow", str(self.objectnum)))
+        if len(datas) >= 1:
+            self.X1.setText(_translate("MainWindow", str(datas[0][0])))
+            self.Y1.setText(_translate("MainWindow", str(datas[0][1])))
+            self.R1.setText(_translate("MainWindow", str(datas[0][2])))
+            self.A1.setText(_translate("MainWindow", str(datas[0][3])))
+        if len(datas) >= 2:
+            self.X2.setText(_translate("MainWindow", str(datas[1][0])))
+            self.Y2.setText(_translate("MainWindow", str(datas[1][1])))
+            self.R2.setText(_translate("MainWindow", str(datas[1][2])))
+            self.A2.setText(_translate("MainWindow", str(datas[1][3])))
+        if len(datas) >= 3:
+            self.X3.setText(_translate("MainWindow", str(datas[2][0])))
+            self.Y3.setText(_translate("MainWindow", str(datas[2][1])))
+            self.R3.setText(_translate("MainWindow", str(datas[2][2])))
+            self.A3.setText(_translate("MainWindow", str(datas[2][3])))
+        if len(datas) >= 4:
+            self.X4.setText(_translate("MainWindow", str(datas[3][0])))
+            self.Y4.setText(_translate("MainWindow", str(datas[3][1])))
+            self.R4.setText(_translate("MainWindow", str(datas[3][2])))
+            self.A4.setText(_translate("MainWindow", str(datas[3][3])))
+
     def input2(self):
         pass
 
@@ -356,16 +366,17 @@ class Ui_MainWindow(object):
         # camera = Camera()
 
     def thread_init(self):
-        self.q = queue.Queue(maxsize = self.objectnum) # 状态队列
+        self.q = queue.Queue(maxsize=self.objectnum)  # 状态队列
         # self.q = []
-        self.numq = queue.Queue(maxsize = self.objectnum) # 照片编号队列
-        self.strs = queue.Queue(maxsize = self.objectnum) # 物品名称和识别率队列
+        self.numq = queue.Queue(maxsize=self.objectnum)  # 照片编号队列
+        self.strs = queue.Queue(maxsize=self.objectnum)  # 物品名称和识别率队列
 
     def show(self, img):
-        '''img为图片数据'''        
+        '''img为图片数据'''
         show = cv2.resize(img, (640, 480))
         show = cv2.cvtColor(show, cv2.COLOR_BGR2RGB)
-        showImage = QtGui.QImage(show.data, show.shape[1], show.shape[0], QtGui.QImage.Format_RGB888)
+        showImage = QtGui.QImage(
+            show.data, show.shape[1], show.shape[0], QtGui.QImage.Format_RGB888)
         self.label_3.setPixmap(QtGui.QPixmap.fromImage(showImage))
 
     def capture_camera(self, camera):
@@ -374,59 +385,77 @@ class Ui_MainWindow(object):
         print("    \033[0;34m拍摄图片%s.jpg...\033[0m" % self.count)
         d, c = camera.capture(self.count)
 
-        filecad= folder+"JPEGImages/%s.jpg" % self.count
-        filedepth= folder+"depth/%s.png" % self.count
-        cv2.imwrite(filecad,c)
-        self.show(c)
+        filecad = folder+"JPEGImages/%s.jpg" % self.count
+        filedepth = folder+"depth/%s.png" % self.count
+        cv2.imwrite(filecad, c)
+        # self.show(c)
         with open(filedepth, 'wb') as f:
-            writer = png.Writer(width=d.shape[1], height=d.shape[0], bitdepth=16, greyscale=True)
+            writer = png.Writer(
+                width=d.shape[1], height=d.shape[0], bitdepth=16, greyscale=True)
             zgray2list = d.tolist()
             writer.write(f, zgray2list)
-
         print("    \033[0;32m%s.jpg已拍摄\033[0m" % self.count)
+
         print("    \033[0;34m定位图片%s.jpg...\033[0m" % self.count)
-        lined = square_desk(self.count, self.x, self.ca, self.ho)
+        lined , Table_2D = corner.square_desk(self.count, self.x, self.ca, self.ho)
         print("    \033[0;32mmarked%s.jpg已保存\033[0m" % self.count)
-        # marked_img = 'marked' + str(self.count) + '.jpg'
-        # marked_img = 'corner.jpg'
-        # marked = cv2.imread(marked_img,1)
-        # self.show(marked)
+
         # 预测
         print("    \033[0;34m预测图片%s.jpg...\033[0m" % self.count)
         threads = []
-        threads.append(predict_thread(self.q, 'safeguard', self.numq, self.strs))
-        # threads.append(predict_thread(self.q, 'copico', self.numq))
-        threads.append(predict_thread(self.q, 'floral_water', self.numq, self.strs))
+        threads.append(predict_thread(
+            self.q, 'safeguard', self.numq, self.strs))
+        threads.append(predict_thread(
+            self.q, 'floral_water', self.numq, self.strs))        
+        threads.append(predict_thread(
+            self.q, 'copico', self.numq, self.strs))
         starttime = time.time()
         for th in threads:
             self.numq.put(self.count)
             th.start()
 
         num_done = 0
-        bs = []; ret = []
+        bss = []
+        ret = []
+        datas = []
         
         while True:
             if ~self.q.empty():
-                bs.append(self.q.get())
+                bss.append(self.q.get())
                 ret.append(self.strs.get())
+                datas.append([])
                 num_done += 1
                 if num_done is self.objectnum:
                     break
         
-        draw_predict(bs, ret, lined, self.count)
+        for bs, data in zip(bss, datas):
+            corners = [bs[3], bs[4], bs[7], bs[8]]
+            corners = np.matmul(corners, [[640, 0], [0, 480]])
+            corners = np.append(corners, [[1], [1], [1], [1]], axis=1)
+            transed, angle = corner.square_trans(Table_2D, corners)
+            np.mean([transed[i][0] for i in range(4)])
+            data.append('%.1f' % (np.mean([transed[i][0] for i in range(4)]) / 10))  # x
+            data.append('%.1f' % (np.mean([transed[i][1] for i in range(4)]) / 10))  # y
+            data.append('')
+            data.append('%.1f' % angle)  # angle
+
+        draw_predict(bss, ret, lined, self.count)
         print("        \033[0;34m用时%s秒\033[0m" % (time.time() - starttime))
         print("    \033[0;32m%s.jpg已保存\033[0m" % self.count)
         predicted = cv2.imread('JPEGImages/predict%s.jpg' % self.count, 1)
+
         self.show(predicted)
+        self.display(datas)
 
 
     def close_camera(self, camera):
         if self.timer_camera.isActive():
             self.timer_camera.stop()
-            
+
         del camera
         cv2.destroyAllWindows()
         self.count = 0
+
 
 if __name__ == "__main__":
     folder = os.getcwd() + "/"

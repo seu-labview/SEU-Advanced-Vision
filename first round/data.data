@@ -1,5 +1,0 @@
-plypath = None
-picpath = sss_Color.png
-outpath = corner_detected.jpg
-labelpath = None
-showwindowname = SEU_Labview
