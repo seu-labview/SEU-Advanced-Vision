@@ -3,4 +3,4 @@ canny_threshold_2 = 150
 sobel = 3
 hough_rho = 1
 hough_theta = 1
-hough_threshold = 50
+hough_threshold = 75

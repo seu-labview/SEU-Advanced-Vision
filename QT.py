@@ -72,7 +72,7 @@ def ReadData():
 
 class Ui_MainWindow(object):
     count = -1
-    objectnum = 2
+    objectnum = 3
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -327,27 +327,32 @@ class Ui_MainWindow(object):
         self.label_33.setText(_translate("MainWindow", "目标4朝向角Angle"))
         self.label_35.setText(_translate("MainWindow", "目标4距离Radius"))
 
-    def display(self, data):
+    def display(self, datas):
         '''
         输入：data：物品数*4数组
         '''
         _translate = QtCore.QCoreApplication.translate
-        self.X1.setText(_translate("MainWindow", str(data[[0]][0])))
-        self.X2.setText(_translate("MainWindow", str(data[[1]][0])))
-        self.X3.setText(_translate("MainWindow", str(data[[2]][0])))
-        self.X4.setText(_translate("MainWindow", str(data[[3]][0])))
-        self.Y1.setText(_translate("MainWindow", str(data[[0]][1])))
-        self.Y2.setText(_translate("MainWindow", str(data[[1]][1])))
-        self.Y3.setText(_translate("MainWindow", str(data[[2]][1])))
-        self.Y4.setText(_translate("MainWindow", str(data[[3]][1])))
-        self.R1.setText(_translate("MainWindow", str(data[[0]][2])))
-        self.R2.setText(_translate("MainWindow", str(data[[1]][2])))
-        self.R3.setText(_translate("MainWindow", str(data[[2]][2])))
-        self.R4.setText(_translate("MainWindow", str(data[[3]][2])))
-        self.A1.setText(_translate("MainWindow", str(data[[0]][3])))
-        self.A2.setText(_translate("MainWindow", str(data[[1]][3])))
-        self.A3.setText(_translate("MainWindow", str(data[[2]][3])))
-        self.A4.setText(_translate("MainWindow", str(data[[3]][3])))
+        self.num.setText(_translate("MainWindow", str(self.objectnum)))
+        if len(datas) >= 1:
+            self.X1.setText(_translate("MainWindow", str(datas[0][0])))
+            self.Y1.setText(_translate("MainWindow", str(datas[0][1])))
+            self.R1.setText(_translate("MainWindow", str(datas[0][2])))
+            self.A1.setText(_translate("MainWindow", str(datas[0][3])))
+        if len(datas) >= 2:
+            self.X2.setText(_translate("MainWindow", str(datas[1][0])))
+            self.Y2.setText(_translate("MainWindow", str(datas[1][1])))
+            self.R2.setText(_translate("MainWindow", str(datas[1][2])))
+            self.A2.setText(_translate("MainWindow", str(datas[1][3])))
+        if len(datas) >= 3:
+            self.X3.setText(_translate("MainWindow", str(datas[2][0])))
+            self.Y3.setText(_translate("MainWindow", str(datas[2][1])))
+            self.R3.setText(_translate("MainWindow", str(datas[2][2])))
+            self.A3.setText(_translate("MainWindow", str(datas[2][3])))
+        if len(datas) >= 4:
+            self.X4.setText(_translate("MainWindow", str(datas[3][0])))
+            self.Y4.setText(_translate("MainWindow", str(datas[3][1])))
+            self.R4.setText(_translate("MainWindow", str(datas[3][2])))
+            self.A4.setText(_translate("MainWindow", str(datas[3][3])))
 
     def input2(self):
         pass
@@ -400,9 +405,10 @@ class Ui_MainWindow(object):
         threads = []
         threads.append(predict_thread(
             self.q, 'safeguard', self.numq, self.strs))
-        # threads.append(predict_thread(self.q, 'copico', self.numq))
         threads.append(predict_thread(
-            self.q, 'floral_water', self.numq, self.strs))
+            self.q, 'floral_water', self.numq, self.strs))        
+        threads.append(predict_thread(
+            self.q, 'copico', self.numq, self.strs))
         starttime = time.time()
         for th in threads:
             self.numq.put(self.count)
@@ -411,26 +417,36 @@ class Ui_MainWindow(object):
         num_done = 0
         bss = []
         ret = []
-
+        datas = []
+        
         while True:
             if ~self.q.empty():
                 bss.append(self.q.get())
                 ret.append(self.strs.get())
+                datas.append([])
                 num_done += 1
                 if num_done is self.objectnum:
                     break
         
-        for bs in bss:
+        for bs, data in zip(bss, datas):
             corners = [bs[3], bs[4], bs[7], bs[8]]
             corners = np.matmul(corners, [[640, 0], [0, 480]])
-            corners = np.append(corners, [[1],[1],[1],[1]], axis = 1)
-            corner.square_trans(Table_2D, corners, lined)
+            corners = np.append(corners, [[1], [1], [1], [1]], axis=1)
+            transed, angle = corner.square_trans(Table_2D, corners)
+            np.mean([transed[i][0] for i in range(4)])
+            data.append('%.1f' % (np.mean([transed[i][0] for i in range(4)]) / 10))  # x
+            data.append('%.1f' % (np.mean([transed[i][1] for i in range(4)]) / 10))  # y
+            data.append('')
+            data.append('%.1f' % angle)  # angle
 
         draw_predict(bss, ret, lined, self.count)
         print("        \033[0;34m用时%s秒\033[0m" % (time.time() - starttime))
         print("    \033[0;32m%s.jpg已保存\033[0m" % self.count)
         predicted = cv2.imread('JPEGImages/predict%s.jpg' % self.count, 1)
+
         self.show(predicted)
+        self.display(datas)
+
 
     def close_camera(self, camera):
         if self.timer_camera.isActive():

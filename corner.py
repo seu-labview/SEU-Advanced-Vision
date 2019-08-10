@@ -263,7 +263,7 @@ def square_desk(num, x, canny, hough):
     return lined, Table_2D
 
 
-def square_trans(Table_2D: '桌子四角', corners: '物体底部四点', lined_img):
+def square_trans(Table_2D: '桌子四角', corners: '物体底部四点', lined_img=[]):
     '''
     若最后一个参数非真（调试模式），则显示图片
     '''
@@ -277,22 +277,20 @@ def square_trans(Table_2D: '桌子四角', corners: '物体底部四点', lined_
     for i in range(4):
         transed_corners[i][0] = transed_corners[i][0] / transed_corners[i][2]
         transed_corners[i][1] = transed_corners[i][1] / transed_corners[i][2]
-    print('2D = \n%s' % Table_2D)
 
-    print('M = \n%s' % M[0:3])
-    print('corners = \n%s' % corners)
-    print('multiplied = \n%s' % transed_corners)
+    a = [0 for i in range(4)]
+    for i in range(4):
+        a[i] = (int(transed_corners[i][0]), int(transed_corners[i][1]))
+    angle = np.degrees(np.arccos(
+        (a[0][0] - a[0][1]) / (((a[0][0] - a[0][1])**2 + (a[1][0] - a[1][1])**2) ** 0.5)))
 
     if len(lined_img):
         # Perspective_Transformation
         transed = cv2.warpPerspective(lined_img, M, (550, 550))
-        a = [0 for i in range(4)]
-        for i in range(4):
-            a[i] = (int(transed_corners[i][0]), int(transed_corners[i][1]))
         cv2.line(transed, a[0], a[1], (0, 255, 0), 1)
         cv2.line(transed, a[0], a[2], (0, 255, 0), 1)
         cv2.line(transed, a[1], a[3], (0, 255, 0), 1)
         cv2.line(transed, a[2], a[3], (0, 255, 0), 1)
-        # cv2.imshow('perspective', transed)
+        cv2.imshow('perspective', transed)
 
-    return transed_corners
+    return transed_corners, angle

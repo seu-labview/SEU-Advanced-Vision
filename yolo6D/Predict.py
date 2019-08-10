@@ -152,7 +152,7 @@ class predict_thread(threading.Thread):
         self.q = q
         self.name = name
         self.numq = numq
-        self.strs = strs
+        self.strs = strs  # 物品名称，识别率（字符串）
 
     def run(self):
         num = self.numq.get()
