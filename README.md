@@ -21,6 +21,7 @@
 ### SR300 相机参数
 
 相机内参：*rs-sensor-control*  [教程](https://blog.csdn.net/weixin_39585934/article/details/84147449)
+
 设置参数：*rs2_options* [教程](https://www.greatqq.com/2019/06/intel-realsense-sensors-options/)
 
 ## 项目结构
@@ -31,4 +32,4 @@
 
 `MeshPly.py`为3D模型接口，被`Predict.py`调用。
 
-使用时，将`LINEMOD`文件夹置于本项目根目录。
+使用时，将`LINEMOD`文件夹和`librealsense2.so`置于本项目根目录，`common`和`third-party`文件夹置于`cppcamera`文件夹下。
