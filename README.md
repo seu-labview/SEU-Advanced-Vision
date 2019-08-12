@@ -47,6 +47,6 @@ Pytorch 根据对应cuda有不同的版本
 
 例如如果未来某天我们安装了CUDA10就可以将*https://download.pytorch.org/whl/cu90/stable* 中的 *cu90* 换成 *cu100* 即
 
-*https://download.pytorch.org/whl/cu1000/stable*
+*https://download.pytorch.org/whl/cu100/stable*
 
 在那里下载，可以得到一个 stable 文件，这个文件就包含了对应此版本cuda的所有pytorch版本
