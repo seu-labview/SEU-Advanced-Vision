@@ -40,4 +40,5 @@
 Pytorch 根据对应cuda有不同的版本
 
 本项目可以通过以下语句安装对应的pytorch和torchvision
+
 *sudo pip3 install torch==1.1.0 torchvision==0.3.0  -f https://download.pytorch.org/whl/cu90/stable* 
