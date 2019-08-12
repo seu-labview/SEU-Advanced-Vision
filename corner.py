@@ -72,7 +72,7 @@ def thres(img, x):
                 im_new[j, i] = 255   #j:高 i:宽
     return im_new
 
-def aaa(img):
+def remove_small_objects(img):
     kernel = np.ones((5, 5), np.uint8)  
     erosion = cv2.erode(img, kernel, iterations = 1)
     # erosion = cv2.dilate(erosion,kernel,iterations = 1)

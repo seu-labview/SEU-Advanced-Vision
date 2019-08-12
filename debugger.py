@@ -11,7 +11,6 @@ import os
 
 global point1, point2
 
-
 def on_mouse(event, x, y, flags, img):
     global point1, point2
     img2 = img.copy()
@@ -253,7 +252,7 @@ class Ui_Form(object):
         ho[1] = int(ho1) * math.pi/180
         ho[2] = self.lineEdit_12.text()
         img = corner.thres(self.img, self.x)
-        img2 = corner.aaa(img)
+        img2 = corner.remove_small_objects(img)
         edges = corner.square_canny(img2, ca)
         cv2.imshow('edges', edges)
         lined, Table_2D = corner.square_line(self.img, edges, ho)
