@@ -32,4 +32,4 @@
 
 `MeshPly.py`为3D模型接口，被`Predict.py`调用。
 
-使用时，将`LINEMOD`文件夹和`librealsense2.so`置于本项目根目录，`common`和`third-party`文件夹置于`cppcamera`文件夹下。
+使用时，将`LINEMOD`文件夹置于本项目根目录
