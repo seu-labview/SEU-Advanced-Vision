@@ -37,6 +37,6 @@
 ##  安装PyTorch对应版本
 通过JetPack安装CUDA和CUDNN后记得重新启动
 
-Pytorch 根据对应cuda有不同打版本
-例如
+Pytorch 根据对应cuda有不同的版本
+本项目可以通过以下语句安装对应的pytorch和torchvision
 *sudo pip3 install torch==1.1.0 torchvision==0.3.0  -f https://download.pytorch.org/whl/cu90/stable * # CUDA 9.0 build
