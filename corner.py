@@ -7,7 +7,7 @@ from yolo6D.utils import get_camera_intrinsic
 from yolo6D.Predict import draw
 from Kmeans import Cluster
 import copy
-
+from skimage import morphology
 
 def read_data_cfg(datacfg):
     options = dict()
@@ -22,7 +22,6 @@ def read_data_cfg(datacfg):
         value = value.strip()
         options[key] = value
     return options
-
 
 def getcrosspoint(rho1, theta1, rho2, theta2):
     cos_1 = np.cos(theta1)
@@ -49,7 +48,6 @@ def getcrosspoint(rho1, theta1, rho2, theta2):
     # print(corss_x, cross_y)
     return (corss_x, cross_y)
 
-
 def thres(img, x):
     '''二值化'''
     red_low = x[0]
@@ -58,12 +56,12 @@ def thres(img, x):
     green_high = x[3]
     blue_low = x[4]
     blue_high = x[5]
-    height, width = img.shape[:2]
-    im_new = np.zeros((height, width, 1), np.uint8)
-    for i in range(height):
-        for j in range(width):
+    height, width = img.shape[:2]   #j:高    i:宽
+    im_new = np.zeros((height, width, 1), np.uint8)   #粗糙的二值化图像
+    for i in range(width):
+        for j in range(height):
             judger = 1
-            temp = img[i, j]
+            temp = img[j, i]     #j:高    i:宽
             if temp[0] < red_low or temp[0] > red_high:
                 judger = 0
             if temp[1] < green_low or temp[1] > green_high:
@@ -71,9 +69,20 @@ def thres(img, x):
             if temp[2] < blue_low or temp[2] > blue_high:
                 judger = 0
             if judger:
-                im_new[i, j] = 255
+                im_new[j, i] = 255   #j:高 i:宽
     return im_new
 
+def aaa(img):
+    kernel = np.ones((5, 5), np.uint8)  
+    erosion = cv2.erode(img, kernel, iterations = 1)
+    # erosion = cv2.dilate(erosion,kernel,iterations = 1)
+    erosion = erosion > 127
+    # opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel) 
+    erosion = morphology.remove_small_objects(erosion, min_size=500, connectivity=1)  #0 1
+    chull = morphology.convex_hull_image(erosion)
+    chull = chull.astype(np.uint8)
+    chull *= 255
+    return chull
 
 def square_canny(img, canny):
     img = cv2.resize(img, (640, 480), interpolation=cv2.INTER_CUBIC)
@@ -89,7 +98,6 @@ def square_canny(img, canny):
     test_gray = cv2.morphologyEx(test_gray, cv2.MORPH_CLOSE, kernel2)
     edges = cv2.Canny(test_gray, canny[0], canny[1], canny[2])
     return edges
-
 
 def square_line(origin, edges, hough):
     '''
@@ -242,7 +250,6 @@ def square_line(origin, edges, hough):
         lined = draw(img, (left_top_point_x, left_top_point_y), imgpts)
     return lined, Table_2D
 
-
 def square_desk(num, x, canny, hough):
     '''
     输入：图片编号
@@ -261,7 +268,6 @@ def square_desk(num, x, canny, hough):
     # marked = cv2.warpPerspective(lined,M,(550,550)) # Perspective_Transformation
     cv2.imwrite('JPEGImages/marked' + str(num) + '.jpg', lined)
     return lined, Table_2D
-
 
 def square_trans(Table_2D: '桌子四角', corners: '物体底部四点', lined_img=[]):
     '''

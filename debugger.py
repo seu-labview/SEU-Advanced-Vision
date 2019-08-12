@@ -228,7 +228,9 @@ class Ui_Form(object):
         self.x[4] = blue_low
         self.x[5] = blue_high
         img_new = corner.thres(self.img, self.x)
+        img_new2 = corner.aaa(img_new)
         cv2.imshow('binary', img_new)
+        cv2.imshow('binary2', img_new2)
         f = open("data1.txt", "w+")
         y = ["red_low = ", "red_high = ", "green_low = ",
              "green_high = ", "blue_low = ", "blue_high = "]
@@ -251,7 +253,8 @@ class Ui_Form(object):
         ho[1] = int(ho1) * math.pi/180
         ho[2] = self.lineEdit_12.text()
         img = corner.thres(self.img, self.x)
-        edges = corner.square_canny(img, ca)
+        img2 = corner.aaa(img)
+        edges = corner.square_canny(img2, ca)
         cv2.imshow('edges', edges)
         lined, Table_2D = corner.square_line(self.img, edges, ho)
         cv2.imshow('lines', lined)
@@ -266,7 +269,7 @@ class Ui_Form(object):
         f.write(y[4]+self.lineEdit_11.text()+'\n')
         f.write(y[5]+self.lineEdit_12.text()+'\n')
         f.close()
-
+    
 
 if __name__ == '__main__':
     # 弹出窗口
