@@ -281,7 +281,7 @@ class Ui_MainWindow(object):
         self.type.setGeometry(QtCore.QRect(1100, 550, 100, 100))
         self.timer_camera = QtCore.QTimer()
         self.x, self.ca, self.ho = ReadData()
-        print(" 2% 开始初始化相机")
+        print(" 2% \033[0;34m开始初始化相机\033[0m")
         camera = Camera()
         camera.init()
         print(" 6% \033[0;32m相机初始化完成\033[0m")
@@ -383,7 +383,7 @@ class Ui_MainWindow(object):
         '''拍照'''
         self.count = self.count + 1
         print("    \033[0;34m拍摄图片%s.jpg...\033[0m" % self.count)
-        d, c = camera.capture(self.count)
+        d, c = camera.capture()
 
         filecad = folder+"JPEGImages/%s.jpg" % self.count
         filedepth = folder+"depth/%s.png" % self.count
