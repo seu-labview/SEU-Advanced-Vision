@@ -8,3 +8,7 @@ depth/
 .idea/
 intrinsics.json
 !JPEGImages/13.jpg
+cmake-build-debug/
+common/
+third-party/
+*.so*
