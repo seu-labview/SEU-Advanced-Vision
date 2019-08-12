@@ -43,6 +43,13 @@ class Camera():
             else:
                 attempt = -1
         color_frame = frames.get_color_frame()
+        device = profile.get_device()
+        sensor = device.query_sensors()
+        sr = sensor[0]
+        sr.set_option(rs.option.motion_range, 140)
+        sr.set_option(rs.option.accuracy, 3)
+        sr.set_option(rs.option.filter_option, 5)
+        sr.set_option(rs.option.confidence_threshold, 15)
 
         # Color Intrinsics 
         intr = color_frame.profile.as_video_stream_profile().intrinsics
@@ -64,7 +71,8 @@ class Camera():
     def __del__(self):
         self.pipeline.stop()
 
-    def capture(self, num):
+    def capture(self):
+        '''返回：深度图，彩色图'''
         self.frames = self.pipeline.wait_for_frames()
         aligned_frames = self.align.process(self.frames)
 

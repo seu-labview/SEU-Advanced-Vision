@@ -73,12 +73,22 @@ def ReadData():
 class Ui_MainWindow(object):
     count = -1
     objectnum = 3
+    isSquare = True
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1400, 700)
         self.centralWidget = QtWidgets.QWidget(MainWindow)
         self.centralWidget.setObjectName("centralWidget")
+        self.comboBox = QtWidgets.QComboBox(self.centralWidget)
+        # self.type.setGeometry(QtCore.QRect(1100, 550, 100, 100))
+        self.comboBox.setGeometry(QtCore.QRect(1075, 550, 93, 28))
+        self.comboBox.setObjectName("comboBox")
+        self.comboBox.addItem("")
+        self.comboBox.addItem("")
+        self.comboBox.addItem("")
+        self.comboBox.addItem("")
+        self.comboBox.setItemText(3, "")
         self.START = QtWidgets.QPushButton(self.centralWidget)
         self.START.setGeometry(QtCore.QRect(950, 550, 93, 28))
         self.START.setObjectName("START")
@@ -275,13 +285,9 @@ class Ui_MainWindow(object):
         # MainWindow.setStatusBar(self.statusBar)
         self.type = QtWidgets.QToolButton()
         self.type.setCheckable(True)
-        round = 1
-        self.type.setChecked(round)
-        self.type.clicked.connect(lambda: self.changetype(round))
-        self.type.setGeometry(QtCore.QRect(1100, 550, 100, 100))
         self.timer_camera = QtCore.QTimer()
         self.x, self.ca, self.ho = ReadData()
-        print(" 2% 开始初始化相机")
+        print(" 2% \033[0;34m开始初始化相机\033[0m")
         camera = Camera()
         camera.init()
         print(" 6% \033[0;32m相机初始化完成\033[0m")
@@ -326,11 +332,15 @@ class Ui_MainWindow(object):
         self.label_31.setText(_translate("MainWindow", "目标4中心Y"))
         self.label_33.setText(_translate("MainWindow", "目标4朝向角Angle"))
         self.label_35.setText(_translate("MainWindow", "目标4距离Radius"))
-
+        self.comboBox.setItemText(0, _translate("MainWindow", "静态"))
+        self.comboBox.setItemText(1, _translate("MainWindow", "动态"))
+        
     def display(self, datas):
         '''
         输入：data：物品数*4数组
         '''
+        a = self.comboBox.currentText()
+        self.isSquare = a == "静态"
         _translate = QtCore.QCoreApplication.translate
         self.num.setText(_translate("MainWindow", str(self.objectnum)))
         if len(datas) >= 1:
@@ -383,7 +393,7 @@ class Ui_MainWindow(object):
         '''拍照'''
         self.count = self.count + 1
         print("    \033[0;34m拍摄图片%s.jpg...\033[0m" % self.count)
-        d, c = camera.capture(self.count)
+        d, c = camera.capture()
 
         filecad = folder+"JPEGImages/%s.jpg" % self.count
         filedepth = folder+"depth/%s.png" % self.count
@@ -427,17 +437,19 @@ class Ui_MainWindow(object):
                 num_done += 1
                 if num_done is self.objectnum:
                     break
-        
-        for bs, data in zip(bss, datas):
-            corners = [bs[3], bs[4], bs[7], bs[8]]
-            corners = np.matmul(corners, [[640, 0], [0, 480]])
-            corners = np.append(corners, [[1], [1], [1], [1]], axis=1)
-            transed, angle = corner.square_trans(Table_2D, corners)
-            np.mean([transed[i][0] for i in range(4)])
-            data.append('%.1f' % (np.mean([transed[i][0] for i in range(4)]) / 10))  # x
-            data.append('%.1f' % (np.mean([transed[i][1] for i in range(4)]) / 10))  # y
-            data.append('')
-            data.append('%.1f' % angle)  # angle
+        if self.isSquare:
+            for bs, data in zip(bss, datas):
+                corners = [bs[3], bs[4], bs[7], bs[8]]
+                corners = np.matmul(corners, [[640, 0], [0, 480]])
+                corners = np.append(corners, [[1], [1], [1], [1]], axis=1)
+                transed, angle = corner.square_trans(Table_2D, corners)
+                np.mean([transed[i][0] for i in range(4)])
+                data.append('%.1f' % (np.mean([transed[i][0] for i in range(4)]) / 10))  # x
+                data.append('%.1f' % (np.mean([transed[i][1] for i in range(4)]) / 10))  # y
+                data.append('')
+                data.append('%.1f' % angle)  # angle
+        else:
+            print("    \033[0;031m圆桌部分未完成！\033[0m")
 
         draw_predict(bss, ret, lined, self.count)
         print("        \033[0;34m用时%s秒\033[0m" % (time.time() - starttime))
