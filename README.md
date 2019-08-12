@@ -33,3 +33,10 @@
 `MeshPly.py`为3D模型接口，被`Predict.py`调用。
 
 使用时，将`LINEMOD`文件夹置于本项目根目录
+
+##  安装PyTorch对应版本
+通过JetPack安装CUDA和CUDNN后记得重新启动
+
+Pytorch 根据对应cuda有不同打版本
+例如
+*sudo pip3 install torch==1.1.0 torchvision==0.3.0  -f https://download.pytorch.org/whl/cu90/stable * # CUDA 9.0 build
