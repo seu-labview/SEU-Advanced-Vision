@@ -42,3 +42,11 @@ Pytorch 根据对应cuda有不同的版本
 本项目可以通过以下语句安装对应的pytorch和torchvision
 
 *sudo pip3 install torch==1.1.0 torchvision==0.3.0  -f https://download.pytorch.org/whl/cu90/stable* 
+
+事实上除了直接编译pytorch源代码外，通过访问对应cuda版本的pytorch下载仓库可以得到官方已经帮你编译好的版本。
+
+例如如果未来某天我们安装了CUDA10就可以将*https://download.pytorch.org/whl/cu90/stable* 中的 *cu90* 换成 *cu100* 即
+
+*https://download.pytorch.org/whl/cu1000/stable*
+
+在那里下载，可以得到一个 stable 文件，这个文件就包含了对应此版本cuda的所有pytorch版本
