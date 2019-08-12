@@ -260,8 +260,8 @@ def square_desk(num, x, canny, hough):
     img = cv2.imread(img_path, 1)
 
     thresed = thres(img, x)
-
-    edges = square_canny(thresed, canny)
+    thresed_new = remove_small_objects(thresed)
+    edges = square_canny(thresed_new, canny)
     lined, Table_2D = square_line(img, edges, hough)
     # affine_table_2D = np.float32([[0,0],[0,550],[550,0],[550,550]])
     # M = cv2.getPerspectiveTransform(Table_2D,affine_table_2D)

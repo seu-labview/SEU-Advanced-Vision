@@ -9,6 +9,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import cv2
 from scipy import spatial
+import json
 
 import struct 
 import imghdr 
@@ -30,11 +31,27 @@ def calcAngularDistance(gt_rot, pr_rot):
     return np.rad2deg(np.arccos((trace-1.0)/2.0))
 
 def get_camera_intrinsic():
+    with open('intrinsics.json', 'r') as f:
+        camera_intrinsics = json.load(f)
     K = np.zeros((3, 3), dtype='float64')
-    K[0, 0], K[0, 2] = 618.3287, 309.8568
-    K[1, 1], K[1, 2] = 618.3289, 237.4846
+    K[0, 0], K[0, 2] = float(camera_intrinsics['fx']), float(camera_intrinsics['ppx'])
+    K[1, 1], K[1, 2] = float(camera_intrinsics['fy']), float(camera_intrinsics['ppy'])
     K[2, 2] = 1.
     return K
+
+def get_depth_intrinsic():
+    with open('depth_intrinsics.json', 'r') as f:
+        depth_intrinsics = json.load(f)
+    K = np.zeros((3, 3), dtype='float64')
+    K[0, 0], K[0, 2] = float(depth_intrinsics['fx']), float(depth_intrinsics['ppx'])
+    K[1, 1], K[1, 2] = float(depth_intrinsics['fy']), float(depth_intrinsics['ppy'])
+    K[2, 2] = 1.
+    return K
+
+def get_extrin():
+    with open('depth_intrinsics.json', 'r') as f:
+        depth_intrinsics = json.load(f)
+    return depth_intrinsics
 
 def compute_projection(points_3D, transformation, internal_calibration):
     projections_2d = np.zeros((2, points_3D.shape[1]), dtype='float32')

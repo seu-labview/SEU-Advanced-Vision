@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["13"]
+            "args": ["get_extrin()"]
         }
     ]
 }

@@ -11,6 +11,7 @@ import os
 #             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
 #         return cls._instances[cls]
 
+
 class Camera():
     '''相机函数封装'''
     pipeline = rs.pipeline()
@@ -18,10 +19,11 @@ class Camera():
 
     def init(self):
         self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-        self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
-        
+        self.config.enable_stream(
+            rs.stream.color, 640, 480, rs.format.bgr8, 30)
+
         # Start pipeline
-        attempt = 1 # 尝试次数，成功则为-1
+        attempt = 1  # 尝试次数，成功则为-1
         while(attempt > 0):
             try:
                 profile = self.pipeline.start(self.config)
@@ -43,6 +45,7 @@ class Camera():
             else:
                 attempt = -1
         color_frame = frames.get_color_frame()
+        depth_frame = frames.get_depth_frame()
         device = profile.get_device()
         sensor = device.query_sensors()
         sr = sensor[0]
@@ -51,19 +54,31 @@ class Camera():
         sr.set_option(rs.option.filter_option, 5)
         sr.set_option(rs.option.confidence_threshold, 15)
 
-        # Color Intrinsics 
+        # Color Intrinsics
         intr = color_frame.profile.as_video_stream_profile().intrinsics
         camera_parameters = {'fx': intr.fx, 'fy': intr.fy,
-                            'ppx': intr.ppx, 'ppy': intr.ppy,
-                            'height': intr.height, 'width': intr.width}
-
-        
+                             'ppx': intr.ppx, 'ppy': intr.ppy,
+                             'height': intr.height, 'width': intr.width}
         with open('intrinsics.json', 'w') as fp:
             json.dump(camera_parameters, fp)
 
+        depth_intr = depth_frame.profile.as_video_stream_profile().intrinsics
+        depth_parameters = {'fx': depth_intr.fx, 'fy': depth_intr.fy,
+                            'ppx': depth_intr.ppx, 'ppy': depth_intr.ppy,
+                            'height': depth_intr.height, 'width': depth_intr.width}
+        with open('depth_intrinsics.json', 'w') as fp:
+            json.dump(depth_parameters, fp)
+
+        depth_to_color_extrin = depth_frame.profile.get_extrinsics_to(
+            color_frame.profile)
+        extrin_parameters = {'rot': depth_to_color_extrin.rotation,
+                             'tran': depth_to_color_extrin.translation}
+        with open('extrinsics.json', 'w') as fp:
+            json.dump(extrin_parameters, fp)
+
         align_to = rs.stream.color
         self.align = rs.align(align_to)
-        # T_start = time.time()            
+        # T_start = time.time()
         # FileName = 0
 
         self.frames = self.pipeline.wait_for_frames()

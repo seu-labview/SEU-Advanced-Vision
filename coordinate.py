@@ -1,12 +1,13 @@
 from cv2 import cv2
 import numpy as np
 import math
-import pyrealsense2 as rs
+from pyrealsense2 import pyrealsense2 as rs
 import time
 import png
 
 import corner
 from camera import Camera
+from yolo6D.utils import get_camera_intrinsic
 
 def getCoordinate(img, depth, M):
     return cv2.reprojectImageTo3D(img, M, depth,)
@@ -98,4 +99,16 @@ if __name__ == '__main__':
     # M = cv2.getPerspectiveTransform(Table_2D, affine_table_2D)
     # print(getCoordinate(img, depth, M))
     (u, v) = Table_2D[1]
-    print(Depth2World(u, v, depth[int(u), int(v)]))
+    # print(Depth2World(u, v, depth[int(u), int(v)]))
+    rs.rs2_deproject_pixel_to_point(get_camera_intrinsic(), (u, v), depth_of_pixel)
+    # From pixel to 3D point
+    depth_point = rs.rs2_deproject_pixel_to_point(depth_intrin, depth_pixel, depth_value)
+    print("\n\t 3D depth_point: " + str(depth_point))
+
+    # From 3D depth point to 3D color point
+    color_point = rs.rs2_transform_point_to_point(depth_to_color_extrin, depth_point)
+    print("\n\t 3D color_point: " + str(color_point))
+
+    # From color point to 2D color pixel
+    color_pixel = rs.rs2_project_point_to_pixel(color_intrin, color_point)
+    print("\n\t color_pixel: " + str(color_pixel))

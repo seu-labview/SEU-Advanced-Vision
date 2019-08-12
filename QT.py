@@ -74,6 +74,8 @@ class Ui_MainWindow(object):
     count = -1
     objectnum = 3
     isSquare = True
+    round = 1
+    datas = []
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -81,7 +83,6 @@ class Ui_MainWindow(object):
         self.centralWidget = QtWidgets.QWidget(MainWindow)
         self.centralWidget.setObjectName("centralWidget")
         self.comboBox = QtWidgets.QComboBox(self.centralWidget)
-        # self.type.setGeometry(QtCore.QRect(1100, 550, 100, 100))
         self.comboBox.setGeometry(QtCore.QRect(1075, 550, 93, 28))
         self.comboBox.setObjectName("comboBox")
         self.comboBox.addItem("")
@@ -95,12 +96,6 @@ class Ui_MainWindow(object):
         self.STOP = QtWidgets.QPushButton(self.centralWidget)
         self.STOP.setGeometry(QtCore.QRect(1200, 550, 93, 28))
         self.STOP.setObjectName("STOP")
-        # self.pushButton_3=QtWidgets.QPushButton(self.centralWidget)
-        # self.START.setGeometry(QtCore.QRect(950, 600, 93, 28))
-        # self.START.setObjectName("pushButton_3")
-        # self.pushButton_4=QtWidgets.QPushButton(self.centralWidget)
-        # self.START.setGeometry(QtCore.QRect(1200, 600, 93, 28))
-        # self.START.setObjectName("pushButton_4")
         self.label = QtWidgets.QLabel(self.centralWidget)
         self.label.setGeometry(QtCore.QRect(270, 40, 72, 15))
         self.label.setObjectName("label")
@@ -275,14 +270,6 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralWidget)
         self.menuBar = QtWidgets.QMenuBar(MainWindow)
         self.menuBar.setGeometry(QtCore.QRect(0, 0, 1208, 26))
-        # self.menuBar.setObjectName("menuBar")
-        # MainWindow.setMenuBar(self.menuBar)
-        # self.mainToolBar = QtWidgets.QToolBar(MainWindow)
-        # self.mainToolBar.setObjectName("mainToolBar")
-        # MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.mainToolBar)
-        # self.statusBar = QtWidgets.QStatusBar(MainWindow)
-        # self.statusBar.setObjectName("statusBar")
-        # MainWindow.setStatusBar(self.statusBar)
         self.type = QtWidgets.QToolButton()
         self.type.setCheckable(True)
         self.timer_camera = QtCore.QTimer()
@@ -294,14 +281,9 @@ class Ui_MainWindow(object):
         self.thread_init()
         print("10% \033[0;32m多线程初始化完成\033[0m")
         self.START.clicked.connect(lambda: self.open_camera(camera))
-        # self.START.clicked.connect(self.display)
-        # self.pushButton_3.clicked.connect(self.open_camera)
-        # self.pushButton_3.clicked.connect(self.input1)
         self.timer_camera.timeout.connect(lambda: self.capture_camera(camera))
         self.STOP.clicked.connect(lambda: self.close_camera(camera))
-        self.STOP.clicked.connect(self.input2)
-        # self.pushButton_4.clicked.connect(lambda:self.close_camera(camera))
-        # self.pushButton_4.clicked.connect(self.input2)
+        self.STOP.clicked.connect(self.save_result)
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -311,8 +293,6 @@ class Ui_MainWindow(object):
         self.START.setText(_translate("MainWindow", "开始识别"))
         self.STOP.setText(_translate("MainWindow", "结束识别"))
         self.type.setText(_translate("MainWindow", "type"))
-        # self.pushButton_3.setText(_translate("MainWindow","CirSTART"))
-        # self.pushButton_4.setText(_translate("MainWindow","CirCLOSE"))
         self.label.setText(_translate("MainWindow", "图像显示"))
         self.label_2.setText(_translate("MainWindow", "识别目标数"))
         self.label_4.setText(_translate("MainWindow", "目标1中心X"))
@@ -334,41 +314,54 @@ class Ui_MainWindow(object):
         self.label_35.setText(_translate("MainWindow", "目标4距离Radius"))
         self.comboBox.setItemText(0, _translate("MainWindow", "静态"))
         self.comboBox.setItemText(1, _translate("MainWindow", "动态"))
-        
+
     def display(self, datas):
         '''
-        输入：data：物品数*4数组
+        输入：data：物品数*5数组
         '''
         a = self.comboBox.currentText()
         self.isSquare = a == "静态"
         _translate = QtCore.QCoreApplication.translate
         self.num.setText(_translate("MainWindow", str(self.objectnum)))
         if len(datas) >= 1:
-            self.X1.setText(_translate("MainWindow", str(datas[0][0])))
-            self.Y1.setText(_translate("MainWindow", str(datas[0][1])))
-            self.R1.setText(_translate("MainWindow", str(datas[0][2])))
-            self.A1.setText(_translate("MainWindow", str(datas[0][3])))
+            self.X1.setText(_translate("MainWindow", str(datas[0][1])))
+            self.Y1.setText(_translate("MainWindow", str(datas[0][2])))
+            self.R1.setText(_translate("MainWindow", str(datas[0][3])))
+            self.A1.setText(_translate("MainWindow", str(datas[0][4])))
         if len(datas) >= 2:
-            self.X2.setText(_translate("MainWindow", str(datas[1][0])))
-            self.Y2.setText(_translate("MainWindow", str(datas[1][1])))
-            self.R2.setText(_translate("MainWindow", str(datas[1][2])))
-            self.A2.setText(_translate("MainWindow", str(datas[1][3])))
+            self.X2.setText(_translate("MainWindow", str(datas[1][1])))
+            self.Y2.setText(_translate("MainWindow", str(datas[1][2])))
+            self.R2.setText(_translate("MainWindow", str(datas[1][3])))
+            self.A2.setText(_translate("MainWindow", str(datas[1][4])))
         if len(datas) >= 3:
-            self.X3.setText(_translate("MainWindow", str(datas[2][0])))
-            self.Y3.setText(_translate("MainWindow", str(datas[2][1])))
-            self.R3.setText(_translate("MainWindow", str(datas[2][2])))
-            self.A3.setText(_translate("MainWindow", str(datas[2][3])))
+            self.X3.setText(_translate("MainWindow", str(datas[2][1])))
+            self.Y3.setText(_translate("MainWindow", str(datas[2][2])))
+            self.R3.setText(_translate("MainWindow", str(datas[2][3])))
+            self.A3.setText(_translate("MainWindow", str(datas[2][4])))
         if len(datas) >= 4:
-            self.X4.setText(_translate("MainWindow", str(datas[3][0])))
-            self.Y4.setText(_translate("MainWindow", str(datas[3][1])))
-            self.R4.setText(_translate("MainWindow", str(datas[3][2])))
-            self.A4.setText(_translate("MainWindow", str(datas[3][3])))
+            self.X4.setText(_translate("MainWindow", str(datas[3][1])))
+            self.Y4.setText(_translate("MainWindow", str(datas[3][2])))
+            self.R4.setText(_translate("MainWindow", str(datas[3][3])))
+            self.A4.setText(_translate("MainWindow", str(datas[3][4])))
 
-    def input2(self):
-        pass
+    def save_result(self):
 
-    def changetype(self, Type):
-        Type = ~Type
+        f = open('东南大学-LabVIEW-R%s.txt' % self.round, 'w+')
+        f.write('START\n')
+        if self.isSquare:
+            for data in self.datas:
+                f.write('GOAL_ID=%s;' % data[0][0])
+                f.write('GOAL_X=%s;' % data[1])
+                f.write('GOAL_Y=%s;' % data[2])
+                f.write('GOAL_Angle=%s\n' % data[4])
+        else:
+            for data in self.datas:
+                f.write('GOAL_ID=%s;' % data[0])
+                f.write('GOAL_Radius%s\n' % data[3])
+        f.write('END')
+        print('    \33[0;32m第%s回合结果已保存\033[0m' % self.round)
+        self.round += 1
+
 
     def open_camera(self, camera):
         if self.timer_camera.isActive() == False:
@@ -407,7 +400,8 @@ class Ui_MainWindow(object):
         print("    \033[0;32m%s.jpg已拍摄\033[0m" % self.count)
 
         print("    \033[0;34m定位图片%s.jpg...\033[0m" % self.count)
-        lined , Table_2D = corner.square_desk(self.count, self.x, self.ca, self.ho)
+        lined, Table_2D = corner.square_desk(
+            self.count, self.x, self.ca, self.ho)
         print("    \033[0;32mmarked%s.jpg已保存\033[0m" % self.count)
 
         # 预测
@@ -416,7 +410,7 @@ class Ui_MainWindow(object):
         threads.append(predict_thread(
             self.q, 'safeguard', self.numq, self.strs))
         threads.append(predict_thread(
-            self.q, 'floral_water', self.numq, self.strs))        
+            self.q, 'floral_water', self.numq, self.strs))
         threads.append(predict_thread(
             self.q, 'copico', self.numq, self.strs))
         starttime = time.time()
@@ -428,12 +422,12 @@ class Ui_MainWindow(object):
         bss = []
         ret = []
         datas = []
-        
+
         while True:
             if ~self.q.empty():
                 bss.append(self.q.get())
                 ret.append(self.strs.get())
-                datas.append([])
+                datas.append([ret[0]]) # 物品名称
                 num_done += 1
                 if num_done is self.objectnum:
                     break
@@ -444,8 +438,10 @@ class Ui_MainWindow(object):
                 corners = np.append(corners, [[1], [1], [1], [1]], axis=1)
                 transed, angle = corner.square_trans(Table_2D, corners)
                 np.mean([transed[i][0] for i in range(4)])
-                data.append('%.1f' % (np.mean([transed[i][0] for i in range(4)]) / 10))  # x
-                data.append('%.1f' % (np.mean([transed[i][1] for i in range(4)]) / 10))  # y
+                data.append(
+                    '%.1f' % (np.mean([transed[i][0] for i in range(4)]) / 10))  # x
+                data.append(
+                    '%.1f' % (np.mean([transed[i][1] for i in range(4)]) / 10))  # y
                 data.append('')
                 data.append('%.1f' % angle)  # angle
         else:
@@ -458,7 +454,7 @@ class Ui_MainWindow(object):
 
         self.show(predicted)
         self.display(datas)
-
+        self.datas = datas
 
     def close_camera(self, camera):
         if self.timer_camera.isActive():

@@ -1,0 +1,5 @@
+START
+GOAL_ID=floral_water;GOAL_X=41.3;GOAL_Y=-190.0;GOAL_Angle=9.9
+GOAL_ID=floral_water;GOAL_X=-128.7;GOAL_Y=-236.7;GOAL_Angle=79.4
+GOAL_ID=floral_water;GOAL_X=621.4;GOAL_Y=-1498.1;GOAL_Angle=87.4
+END

@@ -227,7 +227,7 @@ class Ui_Form(object):
         self.x[4] = blue_low
         self.x[5] = blue_high
         img_new = corner.thres(self.img, self.x)
-        img_new2 = corner.aaa(img_new)
+        img_new2 = corner.remove_small_objects(img_new)
         cv2.imshow('binary', img_new)
         cv2.imshow('binary2', img_new2)
         f = open("data1.txt", "w+")
