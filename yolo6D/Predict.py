@@ -78,13 +78,13 @@ def draw_predict(bss, strss, img, num):
         else:
             tx = x[8]
             ty = y[8]
-        cv.rectangle(img, (tx-2, ty+2), (tx+2 +
-                                         size[0][0], ty-2-size[0][1]), (255, 255, 0), cv.FILLED)
+        cv.rectangle(img, (tx - 2, ty + 2), (tx + 2 +
+                                             size[0][0], ty - 2 - size[0][1]), (255, 255, 0), cv.FILLED)
         cv.putText(img, text, (tx, ty),
                    cv.FONT_HERSHEY_COMPLEX_SMALL, 0.8, (0, 0, 0))
 
         j += 1
-    # corners2D_gt = np.array(corners2D_gt, dtype='float32')
+
     # 保存照片
     cv.imwrite('JPEGImages/predict' + str(num) + '.jpg', img)
 
@@ -95,7 +95,7 @@ def makedirs(path):
         os.makedirs(path)
 
 
-def detect(name, cfgfile, weightfile, image_path):
+def detect(name, model, image_path):
     '''
     调用神经网络检测
     输入：图片位置
@@ -110,30 +110,24 @@ def detect(name, cfgfile, weightfile, image_path):
         os.environ['CUDA_VISIBLE_DEVICES'] = gpus
         torch.cuda.manual_seed(seed)
 
-    model = dn(cfgfile)
-    # model.print_network()
-    model.load_weights(weightfile)
     img = cv.imread(image_path, 1)
     return do_detect(model, img, 0.1, 0.4, 0)
 
 
-def predict(name, num):
+def predict(name, model, num):
     '''
     ！注意：需将权重文件放在 项目根目录中 weigths 下
-    输入: 物体名称，图片编号
+    输入: 物体名称，模型，图片编号
     返回：长度为20的数组，前18为坐标，后接物品名和识别率
     '''
     img_name = 'JPEGImages/marked' + str(num) + '.jpg'
 
-    boxes = detect(str(name), 'yolo6D/yolo-pose.cfg',
-                   'weights/' + name + '.weights', img_name)
+    boxes = detect(str(name), model, img_name)
     best_conf_est = -1
     for j in range(len(boxes)):
         if (boxes[j][18] > best_conf_est):
             box_pr = boxes[j]
             best_conf_est = boxes[j][18]
-        # box_pr        = boxes[j]
-        # best_conf_est = boxes[j][18]
 
     strs = []
     strs.append(name)
@@ -147,16 +141,17 @@ class predict_thread(threading.Thread):
     q：状态数组，name：物品名称，num： 编号队列
     '''
 
-    def __init__(self, q, name, numq, strs):
+    def __init__(self, q, name, model, numq, strs):
         threading.Thread.__init__(self)
         self.q = q
         self.name = name
+        self.model = model
         self.numq = numq
         self.strs = strs  # 物品名称，识别率（字符串）
 
     def run(self):
         num = self.numq.get()
-        bs, strs = predict(self.name, num)
+        bs, strs = predict(self.name, self.model, num)
         self.q.put(bs)
         self.strs.put(strs)
-        print('    \t\033[0;32m%s预测完毕\033[0m' % self.name)
+        print('\t\033[0;32m%s预测完毕\033[0m' % self.name)

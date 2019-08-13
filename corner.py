@@ -125,7 +125,7 @@ def square_line(origin, edges, hough):
     summ = 0
     final_lines = np.zeros((4, 2))
     if len(lines) < 4:
-        print("    \033[0;31m未检测到方桌！\033[0m")
+        print("\033[0;31m未检测到方桌！\033[0m")
         return edges
     else:
         for line in lines:

@@ -10,12 +10,13 @@ import time
 import png
 import threading
 import queue
+import numpy as np
+import math
 
 from yolo6D.Predict import predict, predict_thread, draw_predict
 from camera import Camera
 import corner
-import numpy as np
-import math
+from yolo6D.darknet import Darknet as dn
 
 RECORD_LENGTH = 18
 
@@ -76,6 +77,8 @@ class Ui_MainWindow(object):
     isSquare = True
     round = 1
     datas = []
+    names = []
+    models = []
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -274,12 +277,20 @@ class Ui_MainWindow(object):
         self.type.setCheckable(True)
         self.timer_camera = QtCore.QTimer()
         self.x, self.ca, self.ho = ReadData()
-        print(" 2% \033[0;34m开始初始化相机\033[0m")
+        print("\033[0;34m开始初始化相机\033[0m")
         camera = Camera()
         camera.init()
-        print(" 6% \033[0;32m相机初始化完成\033[0m")
+        print("\033[0;32m相机初始化完成\033[0m")
         self.thread_init()
-        print("10% \033[0;32m多线程初始化完成\033[0m")
+        print("\033[0;32m多线程初始化完成\033[0m")
+        self.names.append("safeguard")
+        self.names.append("floral_water")
+        self.names.append("copico")
+        for name in self.names:
+            model = dn('yolo6D/yolo-pose.cfg')
+            model.load_weights('weights/' + name + '.weights')
+            self.models.append(model)
+            print("\033[0;32m%s网络加载完成\033[0m" % name)
         self.START.clicked.connect(lambda: self.open_camera(camera))
         self.timer_camera.timeout.connect(lambda: self.capture_camera(camera))
         self.STOP.clicked.connect(lambda: self.close_camera(camera))
@@ -362,7 +373,6 @@ class Ui_MainWindow(object):
         print('    \33[0;32m第%s回合结果已保存\033[0m' % self.round)
         self.round += 1
 
-
     def open_camera(self, camera):
         if self.timer_camera.isActive() == False:
             self.timer_camera.start(500)
@@ -407,12 +417,8 @@ class Ui_MainWindow(object):
         # 预测
         print("    \033[0;34m预测图片%s.jpg...\033[0m" % self.count)
         threads = []
-        threads.append(predict_thread(
-            self.q, 'safeguard', self.numq, self.strs))
-        threads.append(predict_thread(
-            self.q, 'floral_water', self.numq, self.strs))
-        threads.append(predict_thread(
-            self.q, 'copico', self.numq, self.strs))
+        for name, model in zip(self.names, self.models):
+            threads.append(predict_thread(self.q, name, model, self.numq, self.strs))
         starttime = time.time()
         for th in threads:
             self.numq.put(self.count)
@@ -427,7 +433,7 @@ class Ui_MainWindow(object):
             if ~self.q.empty():
                 bss.append(self.q.get())
                 ret.append(self.strs.get())
-                datas.append([ret[0]]) # 物品名称
+                datas.append([ret[0]])  # 物品名称
                 num_done += 1
                 if num_done is self.objectnum:
                     break

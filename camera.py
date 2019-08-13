@@ -28,7 +28,7 @@ class Camera():
             try:
                 profile = self.pipeline.start(self.config)
             except(RuntimeError):
-                print("    \033[0;31m未检测到相机！重试%s/5\033[0m" % (attempt))
+                print("\033[0;31m未检测到相机！重试%s/5\033[0m" % (attempt))
                 attempt += 1
                 if attempt > 5:
                     os._exit(0)
@@ -36,16 +36,16 @@ class Camera():
                 attempt = 0
         while(attempt >= 0):
             try:
-                frames = self.pipeline.wait_for_frames()
+                self.frames = self.pipeline.wait_for_frames()
             except(RuntimeError):
-                print("    \033[0;31m相机卡死！重试%s/5\033[0m" % attempt)
+                print("\033[0;31m相机卡死！重试%s/5\033[0m" % attempt)
                 attempt += 1
                 if attempt > 5:
                     os._exit(0)
             else:
                 attempt = -1
-        color_frame = frames.get_color_frame()
-        depth_frame = frames.get_depth_frame()
+        color_frame = self.frames.get_color_frame()
+        depth_frame = self.frames.get_depth_frame()
         device = profile.get_device()
         sensor = device.query_sensors()
         sr = sensor[0]
@@ -78,8 +78,6 @@ class Camera():
 
         align_to = rs.stream.color
         self.align = rs.align(align_to)
-        # T_start = time.time()
-        # FileName = 0
 
         self.frames = self.pipeline.wait_for_frames()
 
@@ -88,7 +86,18 @@ class Camera():
 
     def capture(self):
         '''返回：深度图，彩色图'''
-        self.frames = self.pipeline.wait_for_frames()
+        attempt = 1
+        while(attempt >= 0):
+            try:
+                self.frames = self.pipeline.wait_for_frames()
+            except(RuntimeError):
+                print("\033[0;31m相机卡死！重试%s/5\033[0m" % attempt)
+                attempt += 1
+                if attempt > 5:
+                    os._exit(0)
+            else:
+                attempt = -1
+        
         aligned_frames = self.align.process(self.frames)
 
         aligned_depth_frame = aligned_frames.get_depth_frame()
