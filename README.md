@@ -50,3 +50,5 @@ Pytorch 根据对应cuda有不同的版本
 *https://download.pytorch.org/whl/cu100/stable*
 
 在那里下载，可以得到一个 stable 文件，这个文件就包含了对应此版本cuda的所有pytorch版本
+
+please using *print(torch.cuda.is_available())* to detect whether pytorch could use cuda
