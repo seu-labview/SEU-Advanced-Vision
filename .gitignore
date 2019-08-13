@@ -12,3 +12,5 @@ cmake-build-debug/
 common/
 third-party/
 *.so*
+depth_intrinsics.json
+extrinsics.json

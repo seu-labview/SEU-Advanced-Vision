@@ -73,7 +73,6 @@ def ReadData():
 
 class Ui_MainWindow(object):
     count = -1
-    objectnum = 3
     isSquare = True
     round = 1
     datas = []
@@ -284,7 +283,7 @@ class Ui_MainWindow(object):
         self.thread_init()
         print("\033[0;32m多线程初始化完成\033[0m")
         self.names.append("safeguard")
-        self.names.append("floral_water")
+        # self.names.append("floral_water")
         self.names.append("copico")
         for name in self.names:
             model = dn('yolo6D/yolo-pose.cfg')
@@ -333,7 +332,7 @@ class Ui_MainWindow(object):
         a = self.comboBox.currentText()
         self.isSquare = a == "静态"
         _translate = QtCore.QCoreApplication.translate
-        self.num.setText(_translate("MainWindow", str(self.objectnum)))
+        self.num.setText(_translate("MainWindow", str(len(self.names))))
         if len(datas) >= 1:
             self.X1.setText(_translate("MainWindow", str(datas[0][1])))
             self.Y1.setText(_translate("MainWindow", str(datas[0][2])))
@@ -379,10 +378,10 @@ class Ui_MainWindow(object):
         # camera = Camera()
 
     def thread_init(self):
-        self.q = queue.Queue(maxsize=self.objectnum)  # 状态队列
+        self.q = queue.Queue(maxsize=len(self.names))  # 状态队列
         # self.q = []
-        self.numq = queue.Queue(maxsize=self.objectnum)  # 照片编号队列
-        self.strs = queue.Queue(maxsize=self.objectnum)  # 物品名称和识别率队列
+        self.numq = queue.Queue(maxsize=len(self.names))  # 照片编号队列
+        self.strs = queue.Queue(maxsize=len(self.names))  # 物品名称和识别率队列
 
     def show(self, img):
         '''img为图片数据'''
@@ -430,13 +429,14 @@ class Ui_MainWindow(object):
         datas = []
 
         while True:
-            if ~self.q.empty():
+            # if not self.q.empty():
                 bss.append(self.q.get())
                 ret.append(self.strs.get())
                 datas.append([ret[0]])  # 物品名称
                 num_done += 1
-                if num_done is self.objectnum:
+                if num_done is len(self.names):
                     break
+
         if self.isSquare:
             for bs, data in zip(bss, datas):
                 corners = [bs[3], bs[4], bs[7], bs[8]]
@@ -452,7 +452,8 @@ class Ui_MainWindow(object):
                 data.append('%.1f' % angle)  # angle
         else:
             print("    \033[0;031m圆桌部分未完成！\033[0m")
-
+        
+        print("    \033[0;34m绘制预测中...\033[0m")
         draw_predict(bss, ret, lined, self.count)
         print("        \033[0;34m用时%s秒\033[0m" % (time.time() - starttime))
         print("    \033[0;32m%s.jpg已保存\033[0m" % self.count)
