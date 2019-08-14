@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from cv2 import cv2 as cv2
+from cv2 import cv2
 from PyQt5 import QtCore, QtGui, QtWidgets
-# import pyrealsense2
 from pyrealsense2 import pyrealsense2 as rs
 import os
 import time
@@ -29,6 +28,7 @@ def make_directories(folder):
 
 
 def ReadData():
+    '''读取桌面图像处理参数'''
     fp = open('data1.txt', 'r')
     lines = fp.readlines()
     options = dict()
@@ -72,12 +72,12 @@ def ReadData():
 
 
 class Ui_MainWindow(object):
-    count = -1
-    isSquare = True
-    round = 1
-    datas = []
-    names = []
-    models = []
+    count = -1  # 玄学照片计数器
+    isSquare = True  # 是否是方桌，由下拉菜单控制
+    round = 1  # 回合计数器，用于保存结果
+    names = []  # 要识别的物品名称（代号）
+    models = []  # 预加载模型的存储
+    result = []  # 单回合的数据存储
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -282,9 +282,9 @@ class Ui_MainWindow(object):
         print("\033[0;32m相机初始化完成\033[0m")
         self.thread_init()
         print("\033[0;32m多线程初始化完成\033[0m")
-        self.names.append("safeguard")
-        # self.names.append("floral_water")
-        self.names.append("copico")
+        self.names.append("ZA001")
+        self.names.append("ZA004")
+        self.names.append("ZB008")
         for name in self.names:
             model = dn('yolo6D/yolo-pose.cfg')
             model.load_weights('weights/' + name + '.weights')
@@ -359,13 +359,13 @@ class Ui_MainWindow(object):
         f = open('东南大学-LabVIEW-R%s.txt' % self.round, 'w+')
         f.write('START\n')
         if self.isSquare:
-            for data in self.datas:
+            for data in self.result:
                 f.write('GOAL_ID=%s;' % data[0][0])
                 f.write('GOAL_X=%s;' % data[1])
                 f.write('GOAL_Y=%s;' % data[2])
                 f.write('GOAL_Angle=%s\n' % data[4])
         else:
-            for data in self.datas:
+            for data in self.result:
                 f.write('GOAL_ID=%s;' % data[0])
                 f.write('GOAL_Radius%s\n' % data[3])
         f.write('END')
@@ -400,7 +400,7 @@ class Ui_MainWindow(object):
         filecad = folder+"JPEGImages/%s.jpg" % self.count
         filedepth = folder+"depth/%s.png" % self.count
         cv2.imwrite(filecad, c)
-        # self.show(c)
+        self.show(c)
         with open(filedepth, 'wb') as f:
             writer = png.Writer(
                 width=d.shape[1], height=d.shape[0], bitdepth=16, greyscale=True)
@@ -424,32 +424,38 @@ class Ui_MainWindow(object):
             th.start()
 
         num_done = 0
-        bss = []
-        ret = []
-        datas = []
+        bss = []  # 存储物品九点列表
+        ret = []  # 存储物品名称和识别率
+        datas = []  # 存储结果：名称，x，y，r，a
 
         while True:
-            # if not self.q.empty():
-                bss.append(self.q.get())
-                ret.append(self.strs.get())
-                datas.append([ret[0]])  # 物品名称
-                num_done += 1
-                if num_done is len(self.names):
-                    break
+            bss.append(self.q.get())
+            ret.append(self.strs.get())
+            datas.append([ret[num_done]])  # 物品名称
+            num_done += 1
+            if num_done is len(self.names):
+                break
 
         if self.isSquare:
             for bs, data in zip(bss, datas):
-                corners = [bs[3], bs[4], bs[7], bs[8]]
+                # 根据不同的物品模型，设定不同的底部四点（看预测输出照片可知）
+                if data[0][0] == 'ZA001':
+                    corners = [bs[3], bs[4], bs[7], bs[8]]
+                elif data[0][0] == 'ZA004':
+                    corners = [bs[2], bs[4], bs[6], bs[8]]
+                elif data[0][0] == 'ZB008':
+                    corners = [bs[1], bs[3], bs[5], bs[7]]
                 corners = np.matmul(corners, [[640, 0], [0, 480]])
                 corners = np.append(corners, [[1], [1], [1], [1]], axis=1)
-                transed, angle = corner.square_trans(Table_2D, corners)
+                transed, angle = corner.square_trans(Table_2D, corners, lined)
                 np.mean([transed[i][0] for i in range(4)])
                 data.append(
                     '%.1f' % (np.mean([transed[i][0] for i in range(4)]) / 10))  # x
                 data.append(
                     '%.1f' % (np.mean([transed[i][1] for i in range(4)]) / 10))  # y
-                data.append('')
+                data.append('')  # radius
                 data.append('%.1f' % angle)  # angle
+                del corners
         else:
             print("    \033[0;031m圆桌部分未完成！\033[0m")
         
@@ -461,7 +467,10 @@ class Ui_MainWindow(object):
 
         self.show(predicted)
         self.display(datas)
-        self.datas = datas
+        
+        for name in self.names:  # 将本图片的结果加权平均，记入总结果
+
+
 
     def close_camera(self, camera):
         if self.timer_camera.isActive():

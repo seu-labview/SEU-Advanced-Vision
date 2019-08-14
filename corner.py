@@ -4,10 +4,24 @@ import os
 import math
 import sys
 from yolo6D.utils import get_camera_intrinsic
-from yolo6D.Predict import draw
 from Kmeans import Cluster
 import copy
 from skimage import morphology
+
+def draw(img, corner, imgpts):
+    '''绘制坐标系'''
+
+    img = cv2.line(img, corner, tuple(imgpts[0].ravel()), (255, 0, 0), 3)
+    cv2.putText(img, "X", tuple(
+        imgpts[0].ravel()), cv2.FONT_HERSHEY_COMPLEX, 0.5, (100, 149, 237), 2)
+    img = cv2.line(img, corner, tuple(imgpts[1].ravel()), (0, 255, 0), 3)
+    cv2.putText(img, "Y", tuple(imgpts[1].ravel()),
+               cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 127), 2)
+    img = cv2.line(img, corner, tuple(imgpts[2].ravel()), (0, 0, 255), 3)
+    cv2.putText(img, "Z", tuple(imgpts[2].ravel()),
+               cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 140, 0), 2)
+    return img
+
 
 def read_data_cfg(datacfg):
     options = dict()
@@ -205,6 +219,7 @@ def square_line(origin, edges, hough):
             x2 = int(x0 - 1000*(-b))
             y2 = int(y0 - 1000*(a))
             cv2.line(img, (x1, y1), (x2, y2), (200, 135, 100), 2)
+            # 标记直线编号
             string = str(i)
             cv2.putText(img, string, (int(x0), int(y0)),
                         cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 0, 255), 1)
@@ -269,24 +284,22 @@ def square_desk(num, x, canny, hough):
     cv2.imwrite('JPEGImages/marked' + str(num) + '.jpg', lined)
     return lined, Table_2D
 
-def square_trans(Table_2D: '桌子四角', corners: '物体底部四点', lined_img=[]):
+def square_trans(Table_2D: '桌子四角', points: '物体底部四点', lined_img=[]):
     '''
     若最后一个参数非真（调试模式），则显示图片
     '''
     affine_table_2D = np.float32(
         [[0, 0], [0, 550], [550, 0], [550, 550]])  # 方桌边长550mm
-    M = cv2.getPerspectiveTransform(Table_2D, affine_table_2D)
-    # a3x3 = np.resize(np.append(affine_table_2D, [[1], [1], [1], [1]], axis=1), (3,3))
-    # t3x3 = np.resize(np.append(Table_2D, [[1],[1],[1],[1]], axis = 1), (3,3))
+    M = cv2.getPerspectiveTransform(Table_2D, affine_table_2D)  # 获取透视变换矩阵
 
-    transed_corners = np.matmul(corners, np.transpose(M))
+    transed_points = np.matmul(points, np.transpose(M))
     for i in range(4):
-        transed_corners[i][0] = transed_corners[i][0] / transed_corners[i][2]
-        transed_corners[i][1] = transed_corners[i][1] / transed_corners[i][2]
+        transed_points[i][0] = transed_points[i][0] / transed_points[i][2]
+        transed_points[i][1] = transed_points[i][1] / transed_points[i][2]
 
     a = [0 for i in range(4)]
     for i in range(4):
-        a[i] = (int(transed_corners[i][0]), int(transed_corners[i][1]))
+        a[i] = (int(transed_points[i][0]), int(transed_points[i][1]))
     angle = np.degrees(np.arccos(
         (a[0][0] - a[0][1]) / (((a[0][0] - a[0][1])**2 + (a[1][0] - a[1][1])**2) ** 0.5)))
 
@@ -299,4 +312,4 @@ def square_trans(Table_2D: '桌子四角', corners: '物体底部四点', lined_
         cv2.line(transed, a[2], a[3], (0, 255, 0), 1)
         cv2.imshow('perspective', transed)
 
-    return transed_corners, angle
+    return transed_points, angle

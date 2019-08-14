@@ -1,6 +1,5 @@
 import numpy as np
-import cv2
-from cv2 import cv2 as cv
+from cv2 import cv2
 import os
 import math
 import os
@@ -18,21 +17,6 @@ from yolo6D.utils import get_camera_intrinsic, do_detect, get_3D_corners
 from yolo6D.MeshPly import MeshPly
 
 
-def draw(img, corner, imgpts):
-    '''绘制坐标系'''
-
-    img = cv.line(img, corner, tuple(imgpts[0].ravel()), (255, 0, 0), 3)
-    cv.putText(img, "X", tuple(
-        imgpts[0].ravel()), cv.FONT_HERSHEY_COMPLEX, 0.5, (100, 149, 237), 2)
-    img = cv.line(img, corner, tuple(imgpts[1].ravel()), (0, 255, 0), 3)
-    cv.putText(img, "Y", tuple(imgpts[1].ravel()),
-               cv.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 127), 2)
-    img = cv.line(img, corner, tuple(imgpts[2].ravel()), (0, 0, 255), 3)
-    cv.putText(img, "Z", tuple(imgpts[2].ravel()),
-               cv.FONT_HERSHEY_COMPLEX, 0.5, (255, 140, 0), 2)
-    return img
-
-
 def draw_predict(bss, strss, img, num):
     '''绘制预测框'''
     j = 0
@@ -47,46 +31,46 @@ def draw_predict(bss, strss, img, num):
         for i in range(9):
             x[i] = int(bs[i][0] * width)
             y[i] = int(bs[i][1] * height)
-            cv.circle(img, (x[i], y[i]), 1, (255, 0, 255), -1)
+            cv2.circle(img, (x[i], y[i]), 1, (255, 0, 255), -1)
             string = str(i)
-            cv.putText(
-                img, string, (x[i], y[i]), cv.FONT_HERSHEY_COMPLEX, 0.5, (255, 0, 255), 1)
+            cv2.putText(
+                img, string, (x[i], y[i]), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 255), 1)
             corners2D_gt[i, 0] = x[i]
             corners2D_gt[i, 1] = y[i]
 
-        cv.line(img, (x[1], y[1]), (x[2], y[2]), (255, 255, 0), 2)
-        cv.line(img, (x[2], y[2]), (x[4], y[4]), (255, 255, 0), 2)
-        cv.line(img, (x[3], y[3]), (x[4], y[4]), (255, 255, 0), 2)
-        cv.line(img, (x[1], y[1]), (x[3], y[3]), (255, 255, 0), 2)
+        cv2.line(img, (x[1], y[1]), (x[2], y[2]), (255, 255, 0), 2)
+        cv2.line(img, (x[2], y[2]), (x[4], y[4]), (255, 255, 0), 2)
+        cv2.line(img, (x[3], y[3]), (x[4], y[4]), (255, 255, 0), 2)
+        cv2.line(img, (x[1], y[1]), (x[3], y[3]), (255, 255, 0), 2)
 
-        cv.line(img, (x[1], y[1]), (x[5], y[5]), (255, 255, 0), 2)
-        cv.line(img, (x[2], y[2]), (x[6], y[6]), (255, 255, 0), 2)
-        cv.line(img, (x[3], y[3]), (x[7], y[7]), (255, 255, 0), 2)
-        cv.line(img, (x[4], y[4]), (x[8], y[8]), (255, 255, 0), 2)
+        cv2.line(img, (x[1], y[1]), (x[5], y[5]), (255, 255, 0), 2)
+        cv2.line(img, (x[2], y[2]), (x[6], y[6]), (255, 255, 0), 2)
+        cv2.line(img, (x[3], y[3]), (x[7], y[7]), (255, 255, 0), 2)
+        cv2.line(img, (x[4], y[4]), (x[8], y[8]), (255, 255, 0), 2)
 
-        cv.line(img, (x[5], y[5]), (x[6], y[6]), (255, 255, 0), 2)
-        cv.line(img, (x[5], y[5]), (x[7], y[7]), (255, 255, 0), 2)
-        cv.line(img, (x[6], y[6]), (x[8], y[8]), (255, 255, 0), 2)
-        cv.line(img, (x[7], y[7]), (x[8], y[8]), (255, 255, 0), 2)
+        cv2.line(img, (x[5], y[5]), (x[6], y[6]), (255, 255, 0), 2)
+        cv2.line(img, (x[5], y[5]), (x[7], y[7]), (255, 255, 0), 2)
+        cv2.line(img, (x[6], y[6]), (x[8], y[8]), (255, 255, 0), 2)
+        cv2.line(img, (x[7], y[7]), (x[8], y[8]), (255, 255, 0), 2)
 
         # 输出物品名称和识别率
         text = strss[j][0] + ' ' + strss[j][1]
-        size = cv.getTextSize(text, cv.FONT_HERSHEY_COMPLEX_SMALL, 0.8, 1)
+        size = cv2.getTextSize(text, cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.8, 1)
         if x[1] + size[0][0] <= width and y[1] - size[0][1] > 0:
             tx = x[1]
             ty = y[1]
         else:
             tx = x[8]
             ty = y[8]
-        cv.rectangle(img, (tx - 2, ty + 2), (tx + 2 +
-                                             size[0][0], ty - 2 - size[0][1]), (255, 255, 0), cv.FILLED)
-        cv.putText(img, text, (tx, ty),
-                   cv.FONT_HERSHEY_COMPLEX_SMALL, 0.8, (0, 0, 0))
+        cv2.rectangle(img, (tx - 2, ty + 2), (tx + 2 +
+                                             size[0][0], ty - 2 - size[0][1]), (255, 255, 0), cv2.FILLED)
+        cv2.putText(img, text, (tx, ty),
+                   cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.8, (0, 0, 0))
 
         j += 1
 
     # 保存照片
-    cv.imwrite('JPEGImages/predict' + str(num) + '.jpg', img)
+    cv2.imwrite('JPEGImages/predict' + str(num) + '.jpg', img)
 
 
 def makedirs(path):
@@ -110,7 +94,7 @@ def detect(name, model, image_path):
         os.environ['CUDA_VISIBLE_DEVICES'] = gpus
         torch.cuda.manual_seed(seed)
 
-    img = cv.imread(image_path, 1)
+    img = cv2.imread(image_path, 1)
     return do_detect(model, img, 0.1, 0.4, 0)
 
 
@@ -120,7 +104,7 @@ def predict(name, model, num):
     输入: 物体名称，模型，图片编号
     返回：长度为20的数组，前18为坐标，后接物品名和识别率
     '''
-    img_name = 'JPEGImages/marked' + str(num) + '.jpg'
+    img_name = 'JPEGImages/' + str(num) + '.jpg'
 
     boxes = detect(str(name), model, img_name)
     best_conf_est = -1
