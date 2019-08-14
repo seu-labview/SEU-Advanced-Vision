@@ -79,7 +79,8 @@ class Camera():
         align_to = rs.stream.color
         self.align = rs.align(align_to)
 
-        self.frames = self.pipeline.wait_for_frames()
+        for i in range(30):
+            self.frames = self.pipeline.wait_for_frames()
 
     def __del__(self):
         self.pipeline.stop()
