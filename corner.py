@@ -23,20 +23,6 @@ def draw(img, corner, imgpts):
     return img
 
 
-def read_data_cfg(datacfg):
-    options = dict()
-    with open(datacfg, 'r') as fp:
-        lines = fp.readlines()
-    for line in lines:
-        line = line.strip()
-        if line == '':
-            continue
-        key, value = line.split('=')
-        key = key.strip()
-        value = value.strip()
-        options[key] = value
-    return options
-
 def getcrosspoint(rho1, theta1, rho2, theta2):
     cos_1 = np.cos(theta1)
     sin_1 = np.sin(theta1)
@@ -286,7 +272,7 @@ def square_desk(num, x, canny, hough):
 
 def square_trans(Table_2D: '桌子四角', points: '物体底部四点', lined_img=[]):
     '''
-    若最后一个参数非真（调试模式），则显示图片
+    若最后一个参数非空（调试模式），则显示图片
     '''
     affine_table_2D = np.float32(
         [[0, 0], [0, 550], [550, 0], [550, 550]])  # 方桌边长550mm

@@ -5,9 +5,11 @@ import PyQt5
 from cv2 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import corner
 import math
 import os
+
+import corner
+import circle_fit
 
 global point1, point2
 
@@ -252,10 +254,10 @@ class Ui_Form(object):
         ho[1] = int(ho1) * math.pi/180
         ho[2] = self.lineEdit_12.text()
         img = corner.thres(self.img, self.x)
-        img2 = corner.remove_small_objects(img)
-        edges = corner.square_canny(img2, ca)
-        cv2.imshow('edges', edges)
-        lined, Table_2D = corner.square_line(self.img, edges, ho)
+        thresed = corner.remove_small_objects(img)
+        # edges = circle_fit.circle_canny(self.img, ca)
+        # cv2.imshow('edges', edges)
+        lined, _, Circle_2D = circle_fit.circle_line(self.img, thresed)
         cv2.imshow('lines', lined)
 
         f = open("data2.txt", "w+")

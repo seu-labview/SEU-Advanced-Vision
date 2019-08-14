@@ -15,6 +15,7 @@ import math
 from yolo6D.Predict import predict, predict_thread, draw_predict
 from camera import Camera
 import corner
+import circle_fit
 from yolo6D.darknet import Darknet as dn
 
 RECORD_LENGTH = 18
@@ -330,8 +331,6 @@ class Ui_MainWindow(object):
         '''
         输入：data：物品数*5数组
         '''
-        a = self.comboBox.currentText()
-        self.isSquare = a == "静态"
         _translate = QtCore.QCoreApplication.translate
         self.num.setText(_translate("MainWindow", str(len(self.names))))
         if len(datas) >= 1:
@@ -355,7 +354,6 @@ class Ui_MainWindow(object):
             self.R4.setText(_translate("MainWindow", str(datas[3][3])))
             self.A4.setText(_translate("MainWindow", str(datas[3][4])))
 
-
     def save_result(self):
         f = open('东南大学-LabVIEW-R%s.txt' % self.round, 'w+')
         f.write('START\n')
@@ -365,12 +363,12 @@ class Ui_MainWindow(object):
                 f.write('GOAL_X=%.1f;' % (res[2] / res[1]))
                 f.write('GOAL_Y=%.1f;' % (res[3] / res[1]))
                 f.write('GOAL_Angle=%.1f\n' % (res[5] / res[1]))
-                res [1] = res[2] = res[3] = res[4] = res[5] = 0
+                res[1] = res[2] = res[3] = res[4] = res[5] = 0
         else:
             for res in self.result:
                 f.write('GOAL_ID=%s;' % res[0])
                 f.write('GOAL_Radius%.1f\n' % (res[4] / res[1]))
-                res [1] = res[2] = res[3] = res[4] = res[5] = 0
+                res[1] = res[2] = res[3] = res[4] = res[5] = 0
         f.write('END')
         print('    \33[0;32m第%s回合结果已保存\033[0m' % self.round)
         self.round += 1
@@ -396,6 +394,7 @@ class Ui_MainWindow(object):
 
     def capture_camera(self, camera):
         '''拍照'''
+        self.isSquare = (self.comboBox.currentText() == "静态")
         self.count = self.count + 1
         print("    \033[0;34m拍摄图片%s.jpg...\033[0m" % self.count)
         d, c = camera.capture()
@@ -412,15 +411,20 @@ class Ui_MainWindow(object):
         print("    \033[0;32m%s.jpg已拍摄\033[0m" % self.count)
 
         print("    \033[0;34m定位图片%s.jpg...\033[0m" % self.count)
-        lined, Table_2D = corner.square_desk(
-            self.count, self.x, self.ca, self.ho)
+        if self.isSquare:
+            lined, Table_2D = corner.square_desk(
+                self.count, self.x, self.ca, self.ho)
+        else:
+            lined, Circle_2D = circle_fit.circle_desk(
+                self.count, self.x, self.ca, self.ho)
         print("    \033[0;32mmarked%s.jpg已保存\033[0m" % self.count)
 
         # 预测
         print("    \033[0;34m预测图片%s.jpg...\033[0m" % self.count)
         threads = []
         for name, model in zip(self.names, self.models):
-            threads.append(predict_thread(self.q, name, model, self.numq, self.strs))
+            threads.append(predict_thread(
+                self.q, name, model, self.numq, self.strs))
         starttime = time.time()
         for th in threads:
             self.numq.put(self.count)
@@ -460,8 +464,26 @@ class Ui_MainWindow(object):
                 data.append('%.1f' % angle)  # angle
                 del corners
         else:
-            print("    \033[0;031m圆桌部分未完成！\033[0m")
-        
+            for bs, data in zip(bss, datas):
+                # 根据不同的物品模型，设定不同的底部四点（看预测输出照片可知）
+                if data[0][0] == 'ZA001':
+                    corners = [bs[3], bs[4], bs[7], bs[8]]
+                elif data[0][0] == 'ZA004':
+                    corners = [bs[2], bs[4], bs[6], bs[8]]
+                elif data[0][0] == 'ZB008':
+                    corners = [bs[1], bs[3], bs[5], bs[7]]
+                corners = np.matmul(corners, [[640, 0], [0, 480]])
+                corners = np.append(corners, [[1], [1], [1], [1]], axis=1)
+                transed, angle = circle_fit.circle_trans(Circle_2D, corners, lined)
+                np.mean([transed[i][0] for i in range(4)])
+                data.append(
+                    '%.1f' % (np.mean([transed[i][0] for i in range(4)]) / 10))  # x
+                data.append(
+                    '%.1f' % (np.mean([transed[i][1] for i in range(4)]) / 10))  # y
+                data.append('')  # radius
+                data.append('%.1f' % angle)  # angle
+                del corners
+
         print("    \033[0;34m绘制预测中...\033[0m")
         draw_predict(bss, ret, lined, self.count)
         print("        \033[0;34m用时%s秒\033[0m" % (time.time() - starttime))
@@ -475,12 +497,15 @@ class Ui_MainWindow(object):
                 if data[0][0] == res[0]:  # 名称一致
                     res[1] += float(data[0][1].strip('%')) / 100  # 置信度之和
                     if self.isSquare:
-                        res[2] += float(data[1]) * float(data[0][1].strip('%')) / 100  # x之和
-                        res[3] += float(data[2]) * float(data[0][1].strip('%')) / 100  # y之和
-                        res[5] += float(data[4]) * float(data[0][1].strip('%')) / 100  # a之和
+                        res[2] += float(data[1]) * float(data[0]
+                                                         [1].strip('%')) / 100  # x之和
+                        res[3] += float(data[2]) * float(data[0]
+                                                         [1].strip('%')) / 100  # y之和
+                        res[5] += float(data[4]) * float(data[0]
+                                                         [1].strip('%')) / 100  # a之和
                     else:
-                        res[4] += float(data[3]) * float(data[0][1].strip('%')) / 100  # r之和
-
+                        res[4] += float(data[3]) * float(data[0]
+                                                         [1].strip('%')) / 100  # r之和
 
     def close_camera(self, camera):
         if self.timer_camera.isActive():
