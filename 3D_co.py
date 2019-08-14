@@ -2,6 +2,10 @@ import pyrealsense2 as rs
 import numpy as np
 import cv2
 import circle_fit
+import camera
+
+
+camera.Camera()
 
 # Declare pointcloud object, for calculating pointclouds and texture mappings
 pc = rs.pointcloud()
@@ -55,35 +59,52 @@ while True:
     points = pc.calculate(depth_frame)
     vtx = np.asanyarray(points.get_vertices())
     tex = np.asanyarray(points.get_texture_coordinates())
-    # i = 640*200+200
-    img_color, top, bottle = circle_fit.my_fun(img_color)
-    # i = 640 * int(top[1]) + int(top[0])
-    # print("i = ", i)
-
-    i = 640 * int(top[1]) + int(top[0])
-    print("i = ", i)
-    if top[1] > 0 and top[1] < 640 and top[0] > 0 and top[0] < 480 and i < 300000:
-        print ('top: ',[np.float(vtx[i][0]),np.float(vtx[i][1]),np.float(vtx[i][2])])
-        cv2.circle(img_color, (int(top[0]),int(top[1])), 8, [255,0,255], thickness=-1)
-        cv2.putText(img_color,"Dis:"+str(img_depth[int(top[0]),int(top[1])]), (40,40), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
-        cv2.putText(img_color,"X:"+str(np.float(vtx[i][0])), (80,80), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
-        cv2.putText(img_color,"Y:"+str(np.float(vtx[i][1])), (80,120), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
-        cv2.putText(img_color,"Z:"+str(np.float(vtx[i][2])), (80,160), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+    img_color, top, bottle, right, left = circle_fit.my_fun(img_color)
+    print("------------------------------------------------------------------------------------------")
+    i_top = 640 * int(top[1]) + int(top[0])
+    print("i_top = ", i_top)
+    if top[1] > 0 and top[1] < 640 and top[0] > 0 and top[0] < 480 and i_top < 300000:
+        print ('top: ',[np.float(vtx[i_top][0]),np.float(vtx[i_top][1]),np.float(vtx[i_top][2])])
+        cv2.circle(img_color, (int(top[0]),int(top[1])), 1, [255,0,255], thickness=-1)
+        # cv2.putText(img_color,"Dis:"+str(img_depth[int(top[0]),int(top[1])]), (40,40), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+        # cv2.putText(img_color,"X:"+str(np.float(vtx[i_top][0])), (80,80), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+        # cv2.putText(img_color,"Y:"+str(np.float(vtx[i_top][1])), (80,120), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+        # cv2.putText(img_color,"Z:"+str(np.float(vtx[i_top][2])), (80,160), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
 
 
-    j = 640 * int(bottle[1]) + int(bottle[0])
-    print("j = ", j)
-    if bottle[1] > 0 and bottle[1] < 640 and bottle[0] > 0 and bottle[0] < 480 and j < 300000:
-        print ('bottle: ',[np.float(vtx[j][0]),np.float(vtx[j][1]),np.float(vtx[j][2])])
-        cv2.circle(img_color, (int(bottle[0]),int(bottle[1])), 8, [255,0,255], thickness=-1)
-        cv2.putText(img_color,"Dis:"+str(img_depth[int(bottle[0]),int(bottle[1])]), (40,40), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
-        cv2.putText(img_color,"X:"+str(np.float(vtx[j][0])), (80,80), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
-        cv2.putText(img_color,"Y:"+str(np.float(vtx[j][1])), (80,120), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
-        cv2.putText(img_color,"Z:"+str(np.float(vtx[j][2])), (80,160), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+    i_bottle = 640 * int(bottle[1]) + int(bottle[0])
+    print("i_bottle = ", i_bottle)
+    if bottle[1] > 0 and bottle[1] < 640 and bottle[0] > 0 and bottle[0] < 480 and i_bottle < 300000:
+        print ('bottle: ',[np.float(vtx[i_bottle][0]),np.float(vtx[i_bottle][1]),np.float(vtx[i_bottle][2])])
+        cv2.circle(img_color, (int(bottle[0]),int(bottle[1])), 1, [255,0,255], thickness=-1)
+        # cv2.putText(img_color,"Dis:"+str(img_depth[int(bottle[0]),int(bottle[1])]), (40,40), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+        # cv2.putText(img_color,"X:"+str(np.float(vtx[i_bottle][0])), (80,80), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+        # cv2.putText(img_color,"Y:"+str(np.float(vtx[i_bottle][1])), (80,120), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+        # cv2.putText(img_color,"Z:"+str(np.float(vtx[i_bottle][2])), (80,160), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
 
 
+    i_right = 640 * int(right[1]) + int(right[0])
+    print("i_right = ", i_right)
+    if right[1] > 0 and right[1] < 640 and right[0] > 0 and right[0] < 480 and i_right < 300000:
+        print ('right: ',[np.float(vtx[i_right][0]),np.float(vtx[i_right][1]),np.float(vtx[i_right][2])])
+        cv2.circle(img_color, (int(right[0]),int(right[1])), 1, [255,0,255], thickness=-1)
+        # cv2.putText(img_color,"Dis:"+str(img_depth[int(right[0]),int(right[1])]), (40,40), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+        # cv2.putText(img_color,"X:"+str(np.float(vtx[i_right][0])), (80,80), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+        # cv2.putText(img_color,"Y:"+str(np.float(vtx[i_right][1])), (80,120), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+        # cv2.putText(img_color,"Z:"+str(np.float(vtx[i_right][2])), (80,160), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+    
 
-
+    i_left = 640 * int(left[1]) + int(left[0])
+    print("i_left = ", i_left)
+    if left[1] > 0 and left[1] < 640 and left[0] > 0 and left[0] < 480 and i_left < 300000:
+        print ('left: ',[np.float(vtx[i_left][0]),np.float(vtx[i_left][1]),np.float(vtx[i_left][2])])
+        cv2.circle(img_color, (int(left[0]),int(left[1])), 1, [255,0,255], thickness=-1)
+        # cv2.putText(img_color,"Dis:"+str(img_depth[int(left[0]),int(left[1])]), (40,40), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+        # cv2.putText(img_color,"X:"+str(np.float(vtx[i_left][0])), (80,80), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+        # cv2.putText(img_color,"Y:"+str(np.float(vtx[i_left][1])), (80,120), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+        # cv2.putText(img_color,"Z:"+str(np.float(vtx[i_left][2])), (80,160), cv2.FONT_HERSHEY_SIMPLEX, 1.2,[255,0,255])
+    
+    
     cv2.imshow('depth_frame',img_color)
     key = cv2.waitKey(1)
     if key & 0xFF == ord('q'):
