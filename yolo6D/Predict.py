@@ -34,7 +34,7 @@ def draw_predict(bss, strss, img, num):
             cv2.circle(img, (x[i], y[i]), 1, (255, 0, 255), -1)
             string = str(i)
             cv2.putText(
-                img, string, (x[i], y[i]), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 255), 1)
+                img, string, (x[i], y[i]), cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 0, 255), 1)
             corners2D_gt[i, 0] = x[i]
             corners2D_gt[i, 1] = y[i]
 

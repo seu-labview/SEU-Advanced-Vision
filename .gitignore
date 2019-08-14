@@ -14,3 +14,4 @@ third-party/
 *.so*
 depth_intrinsics.json
 extrinsics.json
+.vscode/

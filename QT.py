@@ -286,6 +286,7 @@ class Ui_MainWindow(object):
         self.names.append("ZA004")
         self.names.append("ZB008")
         for name in self.names:
+            self.result.append([name, 0, 0, 0, 0, 0])
             model = dn('yolo6D/yolo-pose.cfg')
             model.load_weights('weights/' + name + '.weights')
             self.models.append(model)
@@ -354,20 +355,22 @@ class Ui_MainWindow(object):
             self.R4.setText(_translate("MainWindow", str(datas[3][3])))
             self.A4.setText(_translate("MainWindow", str(datas[3][4])))
 
-    def save_result(self):
 
+    def save_result(self):
         f = open('东南大学-LabVIEW-R%s.txt' % self.round, 'w+')
         f.write('START\n')
         if self.isSquare:
-            for data in self.result:
-                f.write('GOAL_ID=%s;' % data[0][0])
-                f.write('GOAL_X=%s;' % data[1])
-                f.write('GOAL_Y=%s;' % data[2])
-                f.write('GOAL_Angle=%s\n' % data[4])
+            for res in self.result:
+                f.write('GOAL_ID=%s;' % res[0])
+                f.write('GOAL_X=%.1f;' % (res[2] / res[1]))
+                f.write('GOAL_Y=%.1f;' % (res[3] / res[1]))
+                f.write('GOAL_Angle=%.1f\n' % (res[5] / res[1]))
+                res [1] = res[2] = res[3] = res[4] = res[5] = 0
         else:
-            for data in self.result:
-                f.write('GOAL_ID=%s;' % data[0])
-                f.write('GOAL_Radius%s\n' % data[3])
+            for res in self.result:
+                f.write('GOAL_ID=%s;' % res[0])
+                f.write('GOAL_Radius%.1f\n' % (res[4] / res[1]))
+                res [1] = res[2] = res[3] = res[4] = res[5] = 0
         f.write('END')
         print('    \33[0;32m第%s回合结果已保存\033[0m' % self.round)
         self.round += 1
@@ -381,7 +384,7 @@ class Ui_MainWindow(object):
         self.q = queue.Queue(maxsize=len(self.names))  # 状态队列
         # self.q = []
         self.numq = queue.Queue(maxsize=len(self.names))  # 照片编号队列
-        self.strs = queue.Queue(maxsize=len(self.names))  # 物品名称和识别率队列
+        self.strs = queue.Queue(maxsize=len(self.names))  # 物品名称和置信度队列
 
     def show(self, img):
         '''img为图片数据'''
@@ -425,13 +428,13 @@ class Ui_MainWindow(object):
 
         num_done = 0
         bss = []  # 存储物品九点列表
-        ret = []  # 存储物品名称和识别率
-        datas = []  # 存储结果：名称，x，y，r，a
+        ret = []  # 存储物品名称和置信度
+        datas = []  # 存储结果：[名称，置信度]，x，y，r，a
 
         while True:
             bss.append(self.q.get())
             ret.append(self.strs.get())
-            datas.append([ret[num_done]])  # 物品名称
+            datas.append([ret[num_done]])  # 名称，置信度
             num_done += 1
             if num_done is len(self.names):
                 break
@@ -447,7 +450,7 @@ class Ui_MainWindow(object):
                     corners = [bs[1], bs[3], bs[5], bs[7]]
                 corners = np.matmul(corners, [[640, 0], [0, 480]])
                 corners = np.append(corners, [[1], [1], [1], [1]], axis=1)
-                transed, angle = corner.square_trans(Table_2D, corners, lined)
+                transed, angle = corner.square_trans(Table_2D, corners)
                 np.mean([transed[i][0] for i in range(4)])
                 data.append(
                     '%.1f' % (np.mean([transed[i][0] for i in range(4)]) / 10))  # x
@@ -467,9 +470,16 @@ class Ui_MainWindow(object):
 
         self.show(predicted)
         self.display(datas)
-        
-        for name in self.names:  # 将本图片的结果加权平均，记入总结果
-
+        for data in datas:
+            for res in self.result:
+                if data[0][0] == res[0]:  # 名称一致
+                    res[1] += float(data[0][1].strip('%')) / 100  # 置信度之和
+                    if self.isSquare:
+                        res[2] += float(data[1]) * float(data[0][1].strip('%')) / 100  # x之和
+                        res[3] += float(data[2]) * float(data[0][1].strip('%')) / 100  # y之和
+                        res[5] += float(data[4]) * float(data[0][1].strip('%')) / 100  # a之和
+                    else:
+                        res[4] += float(data[3]) * float(data[0][1].strip('%')) / 100  # r之和
 
 
     def close_camera(self, camera):
