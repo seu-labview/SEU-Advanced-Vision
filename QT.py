@@ -367,7 +367,7 @@ class Ui_MainWindow(object):
         else:
             for res in self.result:
                 f.write('GOAL_ID=%s;' % res[0])
-                f.write('GOAL_Radius%.1f\n' % (res[4] / res[1]))
+                f.write('GOAL_Radius=%.1f\n' % (res[4] / res[1]))
                 res[1] = res[2] = res[3] = res[4] = res[5] = 0
         f.write('END')
         print('    \33[0;32m第%s回合结果已保存\033[0m' % self.round)
@@ -455,11 +455,10 @@ class Ui_MainWindow(object):
                 corners = np.matmul(corners, [[640, 0], [0, 480]])
                 corners = np.append(corners, [[1], [1], [1], [1]], axis=1)
                 transed, angle = corner.square_trans(Table_2D, corners)
-                np.mean([transed[i][0] for i in range(4)])
-                data.append(
-                    '%.1f' % (np.mean([transed[i][0] for i in range(4)]) / 10))  # x
-                data.append(
-                    '%.1f' % (np.mean([transed[i][1] for i in range(4)]) / 10))  # y
+                avgx = np.mean([transed[i][0] for i in range(4)])
+                avgy = np.mean([transed[i][1] for i in range(4)])
+                data.append('%.1f' % (avgx / 10))  # x
+                data.append('%.1f' % (avgy / 10))  # y
                 data.append('')  # radius
                 data.append('%.1f' % angle)  # angle
                 del corners
@@ -474,14 +473,14 @@ class Ui_MainWindow(object):
                     corners = [bs[1], bs[3], bs[5], bs[7]]
                 corners = np.matmul(corners, [[640, 0], [0, 480]])
                 corners = np.append(corners, [[1], [1], [1], [1]], axis=1)
-                transed, angle = circle_fit.circle_trans(Circle_2D, corners, lined)
-                np.mean([transed[i][0] for i in range(4)])
-                data.append(
-                    '%.1f' % (np.mean([transed[i][0] for i in range(4)]) / 10))  # x
-                data.append(
-                    '%.1f' % (np.mean([transed[i][1] for i in range(4)]) / 10))  # y
-                data.append('')  # radius
-                data.append('%.1f' % angle)  # angle
+                transed = circle_fit.circle_trans(Circle_2D, corners)
+                avgx = np.mean([transed[i][0] for i in range(4)])
+                avgy = np.mean([transed[i][1] for i in range(4)])
+                radius = (avgx ** 2 + avgy ** 2) ** 0.5
+                data.append('')  # x
+                data.append('')  # y
+                data.append('%.1f' % (radius / 10))  # radius
+                data.append('')  # angle
                 del corners
 
         print("    \033[0;34m绘制预测中...\033[0m")
@@ -495,8 +494,10 @@ class Ui_MainWindow(object):
         for data in datas:
             for res in self.result:
                 if data[0][0] == res[0]:  # 名称一致
-                    res[1] += float(data[0][1].strip('%')) / 100  # 置信度之和
                     if self.isSquare:
+                        if (float(data[1]) >= 55 or float(data[1]) <= 0 or float(data[2]) >= 55 or float(data[2]) <= 0):
+                            continue
+                        res[1] += float(data[0][1].strip('%')) / 100  # 置信度之和
                         res[2] += float(data[1]) * float(data[0]
                                                          [1].strip('%')) / 100  # x之和
                         res[3] += float(data[2]) * float(data[0]
@@ -504,6 +505,9 @@ class Ui_MainWindow(object):
                         res[5] += float(data[4]) * float(data[0]
                                                          [1].strip('%')) / 100  # a之和
                     else:
+                        if float(data[3]) >= 30:  # 错误识别
+                            continue
+                        res[1] += float(data[0][1].strip('%')) / 100  # 置信度之和
                         res[4] += float(data[3]) * float(data[0]
                                                          [1].strip('%')) / 100  # r之和
 

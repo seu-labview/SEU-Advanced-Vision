@@ -1,6 +1,6 @@
-red_low = 180
-red_high = 210
-green_low = 180
-green_high = 210
-blue_low = 180
-blue_high = 210
+red_low = 185
+red_high = 215
+green_low = 185
+green_high = 215
+blue_low = 185
+blue_high = 215

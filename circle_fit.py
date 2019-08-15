@@ -82,36 +82,39 @@ def circle_line(origin, thresed, S_thre=(100000, 600000)):
     contours, _ = cv2.findContours(thresed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     top = []; bottle = []; right = []; left = []; center = []
     Circle_2D = []
+    last_longest = 4
+    des_ell = tuple()
     for cnt in contours:
-        if len(cnt) > 0:
+        if len(cnt) > last_longest:  # 确保输出点数最多（且面积不超标）的椭圆
             ell=cv2.fitEllipse(cnt) # 返回椭圆所在的矩形框# 函数返回值为：椭圆的中心坐标，长短轴长度（2a，2b），旋转角度
             S2 =math.pi*ell[1][0]*ell[1][1] # 椭圆面积
-            # if S2>= S_thre[0] and S2 <= S_thre[1]: # 过滤面积小的
-            des_ell = ell
+            if S2>= S_thre[0] and S2 <= S_thre[1]: # 过滤面积小的
+                last_longest = len(cnt)
+                des_ell = ell
 
-            top_x = ell[0][0] - 0.5 * ell[1][0] * math.cos(math.radians(ell[2]))
-            top_y = ell[0][1] - 0.5 * ell[1][0] * math.sin(math.radians(ell[2]))
-            bottle_x = ell[0][0] + 0.5 * ell[1][0] * math.cos(math.radians(ell[2]))
-            bottle_y = ell[0][1] + 0.5 * ell[1][0] * math.sin(math.radians(ell[2]))
+                top_x = ell[0][0] - 0.5 * ell[1][0] * math.cos(math.radians(ell[2]))
+                top_y = ell[0][1] - 0.5 * ell[1][0] * math.sin(math.radians(ell[2]))
+                bottle_x = ell[0][0] + 0.5 * ell[1][0] * math.cos(math.radians(ell[2]))
+                bottle_y = ell[0][1] + 0.5 * ell[1][0] * math.sin(math.radians(ell[2]))
 
-            right_x = ell[0][0] + 0.5 * ell[1][1] * math.sin(math.radians(ell[2]))
-            right_y = ell[0][1] - 0.5 * ell[1][1] * math.cos(math.radians(ell[2]))
-            left_x = ell[0][0] - 0.5 * ell[1][1] * math.sin(math.radians(ell[2]))
-            left_y = ell[0][1] + 0.5 * ell[1][1] * math.cos(math.radians(ell[2]))
+                right_x = ell[0][0] + 0.5 * ell[1][1] * math.sin(math.radians(ell[2]))
+                right_y = ell[0][1] - 0.5 * ell[1][1] * math.cos(math.radians(ell[2]))
+                left_x = ell[0][0] - 0.5 * ell[1][1] * math.sin(math.radians(ell[2]))
+                left_y = ell[0][1] + 0.5 * ell[1][1] * math.cos(math.radians(ell[2]))
             
-            top = (int(top_x), int(top_y))
-            bottle = (int(bottle_x), int(bottle_y))
-            right = (int(right_x), int(right_y))
-            left = (int(left_x), int(left_y))
-            center = (int(ell[0][0]), int(ell[0][1]))
+                top = (int(top_x), int(top_y))
+                bottle = (int(bottle_x), int(bottle_y))
+                right = (int(right_x), int(right_y))
+                left = (int(left_x), int(left_y))
+                center = (int(ell[0][0]), int(ell[0][1]))
 
-            origin = cv2.ellipse(origin, des_ell, (0, 255, 0), 2) # 绘制椭圆
+    origin = cv2.ellipse(origin, des_ell, (0, 255, 0), 2) # 绘制椭圆
 
-            drawpoi(origin, top)
-            drawpoi(origin, bottle)
-            drawpoi(origin, right)
-            drawpoi(origin, left)
-            drawpoi(origin, center)
+    drawpoi(origin, top)
+    drawpoi(origin, bottle)
+    drawpoi(origin, right)
+    drawpoi(origin, left)
+    drawpoi(origin, center)
             
             # rate = ell[1][1]/ell[1][0]
             # elif S2< S_thre[1]:
@@ -137,7 +140,7 @@ def circle_desk(num, x, canny, hough):
 
     thresed = corner.thres(img, x)
     thresed_new = corner.remove_small_objects(thresed)
-    lined, _, Circle_2D = circle_line(img, thresed_new, [150000, 600000])
+    lined, _, Circle_2D = circle_line(img, thresed_new, [100000, 600000])
     # affine_table_2D = np.float32([[0,0],[0,550],[550,0],[550,550]])
     # M = cv2.getPerspectiveTransform(Table_2D,affine_table_2D)
     # marked = cv2.warpPerspective(lined,M,(550,550)) # Perspective_Transformation
@@ -161,8 +164,6 @@ def circle_trans(Cicle_2D: '上下右左', points: '物体底部四点', lined_i
     a = [0 for i in range(4)]
     for i in range(4):
         a[i] = (int(transed_points[i][0]), int(transed_points[i][1]))
-    angle = np.degrees(np.arccos(
-        (a[0][0] - a[0][1]) / (((a[0][0] - a[0][1])**2 + (a[1][0] - a[1][1])**2) ** 0.5)))
 
     if len(lined_img):
         # Perspective_Transformation
@@ -173,15 +174,6 @@ def circle_trans(Cicle_2D: '上下右左', points: '物体底部四点', lined_i
         cv2.line(transed, a[2], a[3], (0, 255, 0), 1)
         cv2.imshow('perspective', transed)
 
-    return transed_points, angle
-
-
-# if __name__ == '__main__':
-#     ima = cv2.imread("JPEGImages/1.jpg", 3)
-#     out, top, bottle, right, left = my_fun(ima)
-#     cv2.imshow("output1.jpg",out)
-#     cv2.waitKey(0)
-
-
+    return transed_points
 
     
