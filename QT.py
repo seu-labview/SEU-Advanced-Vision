@@ -444,46 +444,38 @@ class Ui_MainWindow(object):
             if num_done is len(self.names):
                 break
 
-        if self.isSquare:
-            for bs, data in zip(bss, datas):
-                # 根据不同的物品模型，设定不同的底部四点（看预测输出照片可知）
-                if data[0][0] == 'ZA001':
-                    corners = [bs[3], bs[4], bs[7], bs[8]]
-                elif data[0][0] == 'ZA004':
-                    corners = [bs[2], bs[4], bs[6], bs[8]]
-                elif data[0][0] == 'ZB008':
-                    corners = [bs[1], bs[3], bs[5], bs[7]]
-                corners = np.matmul(corners, [[640, 0], [0, 480]])
-                corners = np.append(corners, [[1], [1], [1], [1]], axis=1)
-                transed, angle = corner.square_trans(Table_2D, corners, lined)
+        for bs, data in zip(bss, datas):
+            # 根据不同的物品模型，设定不同的底部四点（看预测输出照片可知）
+            # lowesty = 0  # 最低
+            # for point in bs:
+
+            if data[0][0] == 'ZA001':
+                points = [bs[3], bs[4], bs[7], bs[8]]
+            elif data[0][0] == 'ZA004':
+                points = [bs[2], bs[4], bs[6], bs[8]]
+            elif data[0][0] == 'ZB008':
+                points = [bs[1], bs[3], bs[5], bs[7]]
+            points = np.matmul(points, [[640, 0], [0, 480]])  # 将物品坐标（0~1）转为像素坐标
+            points = np.append(points, [[1], [1], [1], [1]], axis=1)  # 将4*2矩阵补为4*3矩阵
+            if self.isSquare:
+                transed, angle = corner.square_trans(Table_2D, points)
                 avgx = np.mean([transed[i][0] for i in range(4)])
                 avgy = np.mean([transed[i][1] for i in range(4)])
                 data.append('%.1f' % (avgx / 10))  # x
                 data.append('%.1f' % (avgy / 10))  # y
                 data.append('')  # radius
                 data.append('%.1f' % angle)  # angle
-                del corners
-        else:
-            for bs, data in zip(bss, datas):
-                # 根据不同的物品模型，设定不同的底部四点（看预测输出照片可知）
-                if data[0][0] == 'ZA001':
-                    corners = [bs[3], bs[4], bs[7], bs[8]]
-                elif data[0][0] == 'ZA004':
-                    corners = [bs[2], bs[4], bs[6], bs[8]]
-                elif data[0][0] == 'ZB008':
-                    corners = [bs[1], bs[3], bs[5], bs[7]]
-                corners = np.matmul(corners, [[640, 0], [0, 480]])
-                corners = np.append(corners, [[1], [1], [1], [1]], axis=1)
-                transed = circle_fit.circle_trans(Circle_2D, corners, lined)
+            else:
+                transed = circle_fit.circle_trans(Circle_2D, points, lined)
                 avgx = np.mean([transed[i][0] for i in range(4)])
                 avgy = np.mean([transed[i][1] for i in range(4)])
-                radius = (avgx ** 2 + avgy ** 2) ** 0.5
+                radius = ((avgx - 300) ** 2 + (avgy - 300) ** 2) ** 0.5
                 data.append('')  # x
                 data.append('')  # y
                 data.append('%.1f' % (radius / 10))  # radius
                 data.append('')  # angle
-                del corners
-
+            del points
+        
         print("    \033[0;34m绘制预测中...\033[0m")
         draw_predict(bss, ret, lined, self.count)
         print("        \033[0;34m用时%s秒\033[0m" % (time.time() - starttime))
