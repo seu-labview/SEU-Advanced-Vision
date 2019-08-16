@@ -35,17 +35,6 @@ def mythres(img, x):
                 im_new[j, i] = 255   #j:高 i:宽
     return im_new
 
-def remove_small_objects(img):
-    kernel = np.ones((5, 5), np.uint8)  
-    erosion = cv2.erode(img, kernel, iterations = 1)
-    # erosion = cv2.dilate(erosion,kernel,iterations = 1)
-    erosion = erosion > 127
-    # opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel) 
-    erosion = morphology.remove_small_objects(erosion, min_size=500, connectivity=1)  #0 1
-    chull = morphology.convex_hull_image(erosion)
-    chull = chull.astype(np.uint8)
-    chull *= 255
-    return chull
 
 # 深度距离限制 深度图彩色图交 彩色图圆盘阈值 去除小物品 椭圆检测 椭圆最下点 额外三点 空间三点解曲线 相机外参 圆环方程 圆环四点 反投影RGB 圆盘外参 透视变换
 if __name__ == "__main__":
@@ -69,7 +58,6 @@ if __name__ == "__main__":
     align = rs.align(align_to)
     pc = rs.pointcloud()
     points = rs.points()
-    depth_pixel = [320, 240]
     for i in range(30):
         frames = pipeline.wait_for_frames()
     while True:
@@ -77,20 +65,22 @@ if __name__ == "__main__":
         aligned_frames = align.process(frames)
         aligned_depth_frame = aligned_frames.get_depth_frame()
         depth_intrin = aligned_depth_frame.profile.as_video_stream_profile().intrinsics
+        depth_intrinsic = [[618.329,0,309.857],[0,618.329,237.485],[0,0,1]]
         color_frame = aligned_frames.get_color_frame()
         depth_image = np.asanyarray(aligned_depth_frame.get_data())  
         depth_image_meter = depth_image * depth_scale # 想办法将原始深度图像变成以米为单位的深度图
-        depth_pixel_value = depth_image_meter[depth_pixel[0],depth_pixel[1]]
-        depth_point = rs.rs2_deproject_pixel_to_point(depth_intrin, depth_pixel, depth_pixel_value)
         color_image = np.asanyarray(color_frame.get_data())
+        
         ignore_color = 0 #深度距离限制 将看不见的区域变成黑色
         depth_image_3d = np.dstack((depth_image_meter,depth_image_meter,depth_image_meter))
         depth_limited_color_image = np.where((depth_image_3d > clipping_distance_in_meters) | (depth_image_3d <= 0), ignore_color, color_image) #深度距离限制 深度图彩色图交
-        thres_value = [150,233,150,233,150,233]
+        thres_value = [150,255,155,255,150,255]
         thres_color_image = mythres(depth_limited_color_image,thres_value)
         kernel = np.ones((3, 3), np.uint8)  
         thres_color_image = cv2.morphologyEx(thres_color_image, cv2.MORPH_CLOSE, kernel)  # 闭运算
         thres_color_image = cv2.morphologyEx(thres_color_image, cv2.MORPH_OPEN, kernel)   # 开运算
+        thres_color_image = cv2.erode(thres_color_image, kernel, iterations = 1)
+        thres_color_image = cv2.erode(thres_color_image, kernel, iterations = 1)
         thres_color_image_3d = np.dstack((thres_color_image,thres_color_image,thres_color_image))
         thres_limited_color_image = np.where( (thres_color_image_3d <= 0), ignore_color, color_image)
         contours, hierarchy = cv2.findContours(thres_color_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -110,6 +100,9 @@ if __name__ == "__main__":
         for i in cnt:
             mydrawpoi(color_image, i)
 
+        depth_pixel = []
+        depth_pixel_value = []
+
         left_point_id = 0
         point_id = -1
         left_point_x = cnt[0,0,0]
@@ -120,9 +113,10 @@ if __name__ == "__main__":
                 left_point_x = left_point[0,0]
         left_point_pixel_x = cnt[left_point_id, 0, 0]
         left_point_pixel_y = cnt[left_point_id, 0, 1]
-        print('left',left_point_id,left_point_pixel_x,left_point_pixel_y)
+        depth_pixel.append([left_point_pixel_x,left_point_pixel_y])
+        depth_pixel_value.append(depth_image_meter[left_point_pixel_y,left_point_pixel_x])
+        # print('left',left_point_id,left_point_pixel_x,left_point_pixel_y)
         cv2.circle(color_image, (left_point_pixel_x,left_point_pixel_y), 2, (255,0,0), 2)
-
         right_point_id = 0
         point_id = -1
         right_point_x = cnt[0,0,0]
@@ -133,7 +127,9 @@ if __name__ == "__main__":
                 right_point_x = right_point[0,0]
         right_point_pixel_x = cnt[right_point_id, 0, 0]
         right_point_pixel_y = cnt[right_point_id, 0, 1]
-        print('right',right_point_id,right_point_pixel_x,right_point_pixel_y)
+        depth_pixel.append([right_point_pixel_x,right_point_pixel_y])
+        depth_pixel_value.append(depth_image_meter[right_point_pixel_y,right_point_pixel_x])
+        # print('right',right_point_id,right_point_pixel_x,right_point_pixel_y)
         cv2.circle(color_image, (right_point_pixel_x,right_point_pixel_y), 2, (255,0,0), 2)
 
 
@@ -142,12 +138,16 @@ if __name__ == "__main__":
         test_1_id = left_point_id + diff_id
         test_1_id_x = cnt[test_1_id, 0, 0]
         test_1_id_y = cnt[test_1_id, 0, 1]
-        print('test_1',right_point_id,right_point_pixel_x,right_point_pixel_y)
+        depth_pixel.append([test_1_id_x,test_1_id_y])
+        depth_pixel_value.append(depth_image_meter[test_1_id_y,test_1_id_x])
+        # print('test_1',right_point_id,right_point_pixel_x,right_point_pixel_y)
         cv2.circle(color_image, (test_1_id_x,test_1_id_y), 2, (255,0,0), 2)
         test_2_id = right_point_id - diff_id
         test_2_id_x = cnt[test_2_id, 0, 0]
         test_2_id_y = cnt[test_2_id, 0, 1]
-        print('test_2',right_point_id,right_point_pixel_x,right_point_pixel_y)
+        depth_pixel.append([test_2_id_x,test_2_id_y])
+        depth_pixel_value.append(depth_image_meter[test_2_id_y,test_2_id_x])
+        # print('test_2',right_point_id,right_point_pixel_x,right_point_pixel_y)
         cv2.circle(color_image, (test_2_id_x,test_2_id_y), 2, (255,0,0), 2)        
 
         bottom_point_id = 0
@@ -160,9 +160,49 @@ if __name__ == "__main__":
                 bottom_point_y = bottom_point[0,1]
         bottom_point_pixel_x = cnt[bottom_point_id, 0, 0]
         bottom_point_pixel_y = cnt[bottom_point_id, 0, 1]
-        print('bottom',bottom_point_id,bottom_point_pixel_x,bottom_point_pixel_y)
+        depth_pixel.append([bottom_point_pixel_x,bottom_point_pixel_y])
+        depth_pixel_value.append(depth_image_meter[bottom_point_pixel_y,bottom_point_pixel_x])
+        # print('bottom',bottom_point_id,bottom_point_pixel_x,bottom_point_pixel_y)
         cv2.circle(color_image, (bottom_point_pixel_x,bottom_point_pixel_y), 2, (255,0,0), 2)
-
+        # print(depth_pixel)
+        # print(depth_pixel_value)
+        depth_camera_3D_point = []
+        for i in range(5):
+            depth_camera_3D_point.append(rs.rs2_deproject_pixel_to_point(depth_intrin, depth_pixel[i],depth_pixel_value[i] ))
+        # print(depth_camera_3D_point)
+        depth_camera_3D_point = np.array(depth_camera_3D_point, dtype='float32')
+        depth_pixel = np.array(depth_pixel, dtype='float32')
+        depth_intrinsic = np.array(depth_intrinsic, dtype='float32')
+        distCoeffs = np.zeros((8, 1), dtype='float32')
+        _, rvector, tvector = cv2.solvePnP(
+            depth_camera_3D_point, depth_pixel, depth_intrinsic, distCoeffs)
+        left_3D_point = depth_camera_3D_point[0]
+        right_3D_point = depth_camera_3D_point[1]
+        bottom_3D_point = depth_camera_3D_point[4]
+        vector1 = left_3D_point - bottom_3D_point
+        vector2 = right_3D_point - bottom_3D_point
+        vertical_vector = np.cross(vector1,vector2)
+        vertical_point = bottom_3D_point + vertical_vector
+        D1 = np.dot(bottom_3D_point,vertical_vector)
+        middle_point1 = (left_3D_point + bottom_3D_point) / 2
+        middle_point2 = (right_3D_point + bottom_3D_point) / 2
+        D2 = np.dot(middle_point1,vector1)
+        D3 = np.dot(middle_point2,vector2)
+        D_equation_of_center_point = np.array([D1,D2,D3],dtype='float32')
+        A_equation_of_center_point = [vertical_vector,vector1,vector2]
+        A_equation_of_center_point = np.array(A_equation_of_center_point, dtype='float32')
+        center_point = np.linalg.solve(A_equation_of_center_point, D_equation_of_center_point)
+        # print(center_point)
+        propoint = []
+        propoint.append(vertical_point)
+        propoint.append(center_point)
+        propoint = np.array(propoint, dtype='float32')
+        imgpts, _ = cv2.projectPoints(propoint, rvector, tvector, depth_intrinsic, distCoeffs)
+        print(imgpts)
+        cv2.line(color_image, (bottom_point_pixel_x,bottom_point_pixel_y), tuple(imgpts[0].ravel()), (200, 55, 100), 3)
+        cv2.line(color_image, (bottom_point_pixel_x,bottom_point_pixel_y), (right_point_pixel_x,right_point_pixel_y), (200, 55, 100), 3)
+        cv2.line(color_image, (bottom_point_pixel_x,bottom_point_pixel_y), (left_point_pixel_x,left_point_pixel_y), (200, 55, 100), 3)
+        cv2.circle(color_image, tuple(imgpts[1].ravel()), 2, (100,200,50), 2)
         cv2.namedWindow('Align Example', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('Align Example', color_image)
         cv2.namedWindow('thres_color_image', cv2.WINDOW_AUTOSIZE)
