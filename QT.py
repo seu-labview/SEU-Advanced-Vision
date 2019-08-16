@@ -400,14 +400,15 @@ class Ui_MainWindow(object):
         d, c = camera.capture()
 
         filecad = folder+"JPEGImages/%s.jpg" % self.count
-        filedepth = folder+"depth/%s.png" % self.count
+        # filedepth = folder+"depth/%s.png" % self.count
         cv2.imwrite(filecad, c)
         self.show(c)
-        with open(filedepth, 'wb') as f:
-            writer = png.Writer(
-                width=d.shape[1], height=d.shape[0], bitdepth=16, greyscale=True)
-            zgray2list = d.tolist()
-            writer.write(f, zgray2list)
+        # cv2.imwrite(filedepth, d)
+        # with open(filedepth, 'wb') as f:
+        #     writer = png.Writer(
+        #         width=d.shape[1], height=d.shape[0], bitdepth=16, greyscale=True)
+        #     zgray2list = d.tolist()
+        #     writer.write(f, zgray2list)
         print("    \033[0;32m%s.jpg已拍摄\033[0m" % self.count)
 
         print("    \033[0;34m定位图片%s.jpg...\033[0m" % self.count)
@@ -454,7 +455,7 @@ class Ui_MainWindow(object):
                     corners = [bs[1], bs[3], bs[5], bs[7]]
                 corners = np.matmul(corners, [[640, 0], [0, 480]])
                 corners = np.append(corners, [[1], [1], [1], [1]], axis=1)
-                transed, angle = corner.square_trans(Table_2D, corners)
+                transed, angle = corner.square_trans(Table_2D, corners, lined)
                 avgx = np.mean([transed[i][0] for i in range(4)])
                 avgy = np.mean([transed[i][1] for i in range(4)])
                 data.append('%.1f' % (avgx / 10))  # x
@@ -473,7 +474,7 @@ class Ui_MainWindow(object):
                     corners = [bs[1], bs[3], bs[5], bs[7]]
                 corners = np.matmul(corners, [[640, 0], [0, 480]])
                 corners = np.append(corners, [[1], [1], [1], [1]], axis=1)
-                transed = circle_fit.circle_trans(Circle_2D, corners)
+                transed = circle_fit.circle_trans(Circle_2D, corners, lined)
                 avgx = np.mean([transed[i][0] for i in range(4)])
                 avgy = np.mean([transed[i][1] for i in range(4)])
                 radius = (avgx ** 2 + avgy ** 2) ** 0.5

@@ -16,6 +16,7 @@ class Camera():
     '''相机函数封装'''
     pipeline = rs.pipeline()
     config = rs.config()
+    clipping_distance_in_meters = 1.4   # 深度裁剪范围
 
     def init(self):
         self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
@@ -46,13 +47,13 @@ class Camera():
                 attempt = -1
         color_frame = self.frames.get_color_frame()
         depth_frame = self.frames.get_depth_frame()
-        device = profile.get_device()
-        sensor = device.query_sensors()
-        sr = sensor[0]
-        sr.set_option(rs.option.motion_range, 140)
-        sr.set_option(rs.option.accuracy, 3)
-        sr.set_option(rs.option.filter_option, 5)
-        sr.set_option(rs.option.confidence_threshold, 15)
+        # 设置相机参数
+        depth_sensor = profile.get_device().first_depth_sensor()
+        depth_sensor.set_option(rs.option.motion_range, 220)  # 最远深度 220
+        depth_sensor.set_option(rs.option.accuracy, 3)
+        depth_sensor.set_option(rs.option.filter_option, 7)  # 7
+        depth_sensor.set_option(rs.option.confidence_threshold, 2)
+        self.depth_scale = depth_sensor.get_depth_scale()  # 用于将深度图像转为以米为单位
 
         # Color Intrinsics
         intr = color_frame.profile.as_video_stream_profile().intrinsics
@@ -98,9 +99,9 @@ class Camera():
                     os._exit(0)
             else:
                 attempt = -1
-        
-        aligned_frames = self.align.process(self.frames)
 
+        # 对齐
+        aligned_frames = self.align.process(self.frames)
         aligned_depth_frame = aligned_frames.get_depth_frame()
         color_frame = aligned_frames.get_color_frame()
 
@@ -108,6 +109,13 @@ class Camera():
         if not aligned_depth_frame or not color_frame:
             return
 
-        d = np.asanyarray(aligned_depth_frame.get_data())
-        c = np.asanyarray(color_frame.get_data())
-        return d, c
+        depth_image = np.asanyarray(
+            aligned_depth_frame.get_data()) * self.depth_scale
+        color_image = np.asanyarray(color_frame.get_data())
+
+        depth_image_3d = np.dstack(
+            (depth_image, depth_image, depth_image))
+        depth_clipped_color_image = np.where((depth_image_3d > self.clipping_distance_in_meters) | (
+            depth_image_3d <= 0), 0, color_image)  # 深度距离限制 深度图彩色图交 倒数第二个参数代表黑色
+
+        return depth_image, depth_clipped_color_image

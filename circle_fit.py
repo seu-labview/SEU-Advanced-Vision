@@ -79,7 +79,7 @@ def circle_line(origin, thresed, S_thre=(100000, 600000)):
     # ret, thresh = cv2.threshold(imgray, 127, 255, cv2.THRESH_BINARY)
     # cv2.imshow("thres", thresh)
     # image, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    contours, _ = cv2.findContours(thresed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    _, contours, _ = cv2.findContours(thresed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     top = []; bottle = []; right = []; left = []; center = []
     Circle_2D = []
     last_longest = 4
