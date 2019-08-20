@@ -283,9 +283,26 @@ class Ui_MainWindow(object):
         print("\033[0;32m相机初始化完成\033[0m")
         self.thread_init()
         print("\033[0;32m多线程初始化完成\033[0m")
-        self.names.append("ZA001")
-        self.names.append("ZA004")
-        self.names.append("ZB008")
+        # self.names.append("ZA001")  # 舒肤佳
+        # self.names.append("ZA002")  # 洗手液
+        # self.names.append("ZA004")  # 花露水
+        # self.names.append("ZB001")  # 八宝粥
+        # self.names.append("ZB002")  # 辣酱
+        # self.names.append("ZB003")  # 曲奇
+        # self.names.append("ZB004")  # 果珍
+        # self.names.append("ZB005")  # 绿箭
+        # self.names.append("ZB007")  # 太平饼干
+        # self.names.append("ZB008")  # 可比克
+        # self.names.append("ZB009")  # 乐事
+        # self.names.append("ZC005")  # AD奶
+        # self.names.append("ZC006")  # 橙汁
+        # self.names.append("ZC009")  # 冰红茶
+        # self.names.append("ZC010")  # 绿茶
+        # self.names.append("ZC011")  # 冰糖雪梨
+        # self.names.append("ZC012")  # 茶π
+        self.names.append("ZC013")  # 椰奶
+        # self.names.append("ZC014")  # 农夫山泉
+        # self.names.append("greentea")
         for name in self.names:
             self.result.append([name, 0, 0, 0, 0, 0])
             model = dn('yolo6D/yolo-pose.cfg')
@@ -451,12 +468,20 @@ class Ui_MainWindow(object):
 
             if data[0][0] == 'ZA001':
                 points = [bs[3], bs[4], bs[7], bs[8]]
-            elif data[0][0] == 'ZA004':
+            elif data[0][0] == 'ZA004' or data[0][0] == 'ZB005' or data[0][0] == 'ZB001' or data[0][0] == 'ZC010' or data[0][0] == 'ZC013' or data[0][0] == 'ZC014':
                 points = [bs[2], bs[4], bs[6], bs[8]]
-            elif data[0][0] == 'ZB008':
+            elif data[0][0] == 'ZA002' or data[0][0] == 'ZB008' or data[0][0] == 'ZB009' or data[0][0] == 'ZC005' or data[0][0] == 'ZC006' or data[0][0] == 'ZC012':
                 points = [bs[1], bs[3], bs[5], bs[7]]
-            points = np.matmul(points, [[640, 0], [0, 480]])  # 将物品坐标（0~1）转为像素坐标
-            points = np.append(points, [[1], [1], [1], [1]], axis=1)  # 将4*2矩阵补为4*3矩阵
+            elif data[0][0] == 'ZB003':
+                points = [bs[1], bs[2], bs[3], bs[4]]
+            elif data[0][0] == 'ZB007':
+                points = [bs[5], bs[6], bs[7], bs[8]]
+            else:
+                points = [bs[1], bs[2], bs[3], bs[4]]
+            # 将物品坐标（0~1）转为像素坐标
+            points = np.matmul(points, [[640, 0], [0, 480]])
+            points = np.append(
+                points, [[1], [1], [1], [1]], axis=1)  # 将4*2矩阵补为4*3矩阵
             if self.isSquare:
                 transed, angle = corner.square_trans(Table_2D, points)
                 avgx = np.mean([transed[i][0] for i in range(4)])
@@ -475,7 +500,7 @@ class Ui_MainWindow(object):
                 data.append('%.1f' % (radius / 10))  # radius
                 data.append('')  # angle
             del points
-        
+
         print("    \033[0;34m绘制预测中...\033[0m")
         draw_predict(bss, ret, lined, self.count)
         print("        \033[0;34m用时%s秒\033[0m" % (time.time() - starttime))

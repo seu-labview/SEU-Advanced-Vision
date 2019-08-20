@@ -38,6 +38,20 @@ def draw_predict(bss, strss, img, num):
             corners2D_gt[i, 0] = x[i]
             corners2D_gt[i, 1] = y[i]
 
+        # 输出物品名称和识别率
+        text = strss[j][0] + ' ' + strss[j][1]
+        size = cv2.getTextSize(text, cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.8, 1)
+        if x[1] + size[0][0] <= width and y[1] - size[0][1] > 0:
+            tx = x[1]
+            ty = y[1]
+        else:
+            tx = x[8]
+            ty = y[8]
+        cv2.rectangle(img, (tx - 2, ty + 2), (tx + 2 +
+                                             size[0][0], ty - 2 - size[0][1]), (255, 255, 0), cv2.FILLED)
+        cv2.putText(img, text, (tx, ty),
+                   cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.8, (0, 0, 0))
+
         cv2.line(img, (x[1], y[1]), (x[2], y[2]), (255, 255, 0), 2)
         cv2.line(img, (x[2], y[2]), (x[4], y[4]), (255, 255, 0), 2)
         cv2.line(img, (x[3], y[3]), (x[4], y[4]), (255, 255, 0), 2)
@@ -53,21 +67,8 @@ def draw_predict(bss, strss, img, num):
         cv2.line(img, (x[6], y[6]), (x[8], y[8]), (255, 255, 0), 2)
         cv2.line(img, (x[7], y[7]), (x[8], y[8]), (255, 255, 0), 2)
 
-        # 输出物品名称和识别率
-        text = strss[j][0] + ' ' + strss[j][1]
-        size = cv2.getTextSize(text, cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.8, 1)
-        if x[1] + size[0][0] <= width and y[1] - size[0][1] > 0:
-            tx = x[1]
-            ty = y[1]
-        else:
-            tx = x[8]
-            ty = y[8]
-        cv2.rectangle(img, (tx - 2, ty + 2), (tx + 2 +
-                                             size[0][0], ty - 2 - size[0][1]), (255, 255, 0), cv2.FILLED)
-        cv2.putText(img, text, (tx, ty),
-                   cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.8, (0, 0, 0))
-
         j += 1
+        
 
     # 保存照片
     cv2.imwrite('JPEGImages/predict' + str(num) + '.jpg', img)
@@ -106,17 +107,22 @@ def predict(name, model, num):
     '''
     img_name = 'JPEGImages/' + str(num) + '.jpg'
 
-    boxes = detect(str(name), model, img_name)
-    best_conf_est = -1
-    for j in range(len(boxes)):
-        if (boxes[j][18] > best_conf_est):
-            box_pr = boxes[j]
-            best_conf_est = boxes[j][18]
-
     strs = []
     strs.append(name)
-    strs.append(str(int(best_conf_est.numpy() * 100)) + '%')
 
+    boxes = detect(str(name), model, img_name)
+    best_conf_est = 0
+    if not len(boxes):
+        strs.append('0%')
+        box_pr = np.zeros((1, 18))
+    else:
+        for j in range(len(boxes)):
+            if (boxes[j][18] > best_conf_est):
+                box_pr = boxes[j]
+                best_conf_est = boxes[j][18]
+
+    # strs.append(str(int(best_conf_est.numpy() * 100)) + '%')
+    strs.append(str(int(best_conf_est * 100)) + '%')
     return np.array(np.reshape(box_pr[:18], [9, 2]), dtype='float32'), strs
 
 

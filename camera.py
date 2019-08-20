@@ -49,10 +49,10 @@ class Camera():
         depth_frame = self.frames.get_depth_frame()
         # 设置相机参数
         depth_sensor = profile.get_device().first_depth_sensor()
-        depth_sensor.set_option(rs.option.motion_range, 220)  # 最远深度 220
-        depth_sensor.set_option(rs.option.accuracy, 3)
+        depth_sensor.set_option(rs.option.motion_range, 140)  # 最远深度 220
+        depth_sensor.set_option(rs.option.accuracy, 3)  # max=3 
         depth_sensor.set_option(rs.option.filter_option, 7)  # 7
-        depth_sensor.set_option(rs.option.confidence_threshold, 2)
+        depth_sensor.set_option(rs.option.confidence_threshold, 15)  # 15
         self.depth_scale = depth_sensor.get_depth_scale()  # 用于将深度图像转为以米为单位
 
         # Color Intrinsics

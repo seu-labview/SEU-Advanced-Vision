@@ -1,8 +1,8 @@
 from yolo6D.Predict import *
 
 if __name__ == "__main__":
-    name = 'ZB008'
-    img_path = '1.jpg'
+    name = 'ZC011'
+    img_path = '0.jpg'
     img = cv2.imread(img_path)
     model = dn('yolo6D/yolo-pose.cfg')
     model.load_weights('weights/' + name + '.weights')
@@ -19,3 +19,4 @@ if __name__ == "__main__":
     strs.append(str(int(best_conf_est.numpy() * 100)) + '%')
     strss = [strs]
     draw_predict(bss, strss, img, -1)
+    cv2.imshow('predict', img)

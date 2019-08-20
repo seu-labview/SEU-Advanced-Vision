@@ -176,4 +176,7 @@ def circle_trans(Cicle_2D: '上下右左', points: '物体底部四点', lined_i
 
     return transed_points
 
+def FitCircle():
+    pass
+
     
