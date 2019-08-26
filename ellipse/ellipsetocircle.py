@@ -168,7 +168,7 @@ if __name__ == "__main__":
         # print(depth_pixel_value)
         depth_camera_3D_point = []
         for i in range(5):
-            depth_camera_3D_point.append(rs.rs2_deproject_pixel_to_point(depth_intrin, depth_pixel[i],depth_pixel_value[i] ))
+            depth_camera_3D_point.append(rs.rs2_deproject_pixel_to_point(depth_intrin, depth_pixel[i],depth_pixel_value[i] )) 
         # print(depth_camera_3D_point)
         depth_camera_3D_point = np.array(depth_camera_3D_point, dtype='float32')
         depth_pixel = np.array(depth_pixel, dtype='float32')
@@ -182,6 +182,8 @@ if __name__ == "__main__":
         vector1 = left_3D_point - bottom_3D_point
         vector2 = right_3D_point - bottom_3D_point
         vertical_vector = np.cross(vector1,vector2)
+        vertical_vector_norm = np.linalg.norm(vertical_vector)
+        unit_vector = vertical_vector / vertical_vector_norm
         vertical_point = bottom_3D_point + vertical_vector
         D1 = np.dot(bottom_3D_point,vertical_vector)
         middle_point1 = (left_3D_point + bottom_3D_point) / 2
@@ -192,21 +194,39 @@ if __name__ == "__main__":
         A_equation_of_center_point = [vertical_vector,vector1,vector2]
         A_equation_of_center_point = np.array(A_equation_of_center_point, dtype='float32')
         center_point = np.linalg.solve(A_equation_of_center_point, D_equation_of_center_point)
+        vecter_x1 = center_point - bottom_3D_point
+        top_x_point = center_point + vecter_x1
+        vecter_y1 = np.cross(vecter_x1,unit_vector)
+        side_y1_point = center_point + vecter_y1
+        side_y2_point = center_point - vecter_y1
         # print(center_point)
         propoint = []
         propoint.append(vertical_point)
         propoint.append(center_point)
+        propoint.append(top_x_point)
+        propoint.append(side_y1_point)
+        propoint.append(side_y2_point)
         propoint = np.array(propoint, dtype='float32')
         imgpts, _ = cv2.projectPoints(propoint, rvector, tvector, depth_intrinsic, distCoeffs)
-        print(imgpts)
         cv2.line(color_image, (bottom_point_pixel_x,bottom_point_pixel_y), tuple(imgpts[0].ravel()), (200, 55, 100), 3)
         cv2.line(color_image, (bottom_point_pixel_x,bottom_point_pixel_y), (right_point_pixel_x,right_point_pixel_y), (200, 55, 100), 3)
         cv2.line(color_image, (bottom_point_pixel_x,bottom_point_pixel_y), (left_point_pixel_x,left_point_pixel_y), (200, 55, 100), 3)
         cv2.circle(color_image, tuple(imgpts[1].ravel()), 2, (100,200,50), 2)
+        cv2.circle(color_image, tuple(imgpts[2].ravel()), 2, (100,200,50), 2)
+        cv2.circle(color_image, tuple(imgpts[3].ravel()), 2, (100,200,50), 2)
+        cv2.circle(color_image, tuple(imgpts[4].ravel()), 2, (100,200,50), 2)
+        circle_pixel = [[bottom_point_pixel_x,bottom_point_pixel_y],imgpts[2].ravel(),imgpts[3].ravel(),imgpts[4].ravel()]
+        circle_pixel = np.array(circle_pixel,dtype = 'float32')
+        print(circle_pixel)
+        affine_circle_pixel = np.float32([[600, 300], [0, 300], [300, 0], [300, 600]])
+        M = cv2.getPerspectiveTransform(circle_pixel, affine_circle_pixel)
+        Perspective_image = cv2.warpPerspective(color_image,M,(600,600))
         cv2.namedWindow('Align Example', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('Align Example', color_image)
         cv2.namedWindow('thres_color_image', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('thres_color_image', thres_color_image)
+        cv2.namedWindow('Perspective', cv2.WINDOW_AUTOSIZE)
+        cv2.imshow('Perspective', Perspective_image)        
         key = cv2.waitKey(1)
         if key & 0xFF == ord('q') or key == 27:
             cv2.destroyAllWindows()
