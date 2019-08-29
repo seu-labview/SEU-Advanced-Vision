@@ -28,6 +28,14 @@ def make_directories(folder):
         os.makedirs(folder+"depth/")
 
 
+def index2(list_, name):
+    '''在result中查找对应物品名称，并返回所在行的索引，未找到则返回-1'''
+    for i in range(len(list_)):
+        if list_[i][0] == name:
+            return i
+    return -1  # 未找到
+
+
 def ReadData():
     '''读取桌面图像处理参数'''
     fp = open('data1.txt', 'r')
@@ -284,25 +292,39 @@ class Ui_MainWindow(object):
         self.thread_init()
         print("\033[0;32m多线程初始化完成\033[0m")
         # self.names.append("ZA001")  # 舒肤佳
+        # self.names.append("ZA001v")
+        # self.names.append("ZA001h1")
+        # self.names.append("ZA001h2")
         # self.names.append("ZA002")  # 洗手液
+        # self.names.append("ZA003")  # 牙膏
         # self.names.append("ZA004")  # 花露水
+        # self.names.append("ZA005")  # 鸭子
         # self.names.append("ZB001")  # 八宝粥
         # self.names.append("ZB002")  # 辣酱
         # self.names.append("ZB003")  # 曲奇
         # self.names.append("ZB004")  # 果珍
-        # self.names.append("ZB005")  # 绿箭
+        self.names.append("ZB005")  # 绿箭
+        # self.names.append("ZB006")  # 面
+        # self.names.append("ZB006r")
         # self.names.append("ZB007")  # 太平饼干
+        # self.names.append("ZB007r")
         # self.names.append("ZB008")  # 可比克
         # self.names.append("ZB009")  # 乐事
+        # self.names.append("ZB009r")
+        # self.names.append("ZB010")  # 瓜子
+        # self.names.append("ZC004")  # 红牛
         # self.names.append("ZC005")  # AD奶
         # self.names.append("ZC006")  # 橙汁
+        # self.names.append("ZC008")  # 加多宝
         # self.names.append("ZC009")  # 冰红茶
+        # self.names.append("ZC0091")
         # self.names.append("ZC010")  # 绿茶
         # self.names.append("ZC011")  # 冰糖雪梨
+        # self.names.append("ZC011h")
         # self.names.append("ZC012")  # 茶π
-        self.names.append("ZC013")  # 椰奶
+        # self.names.append("ZC012h")
+        # self.names.append("ZC013")  # 椰奶
         # self.names.append("ZC014")  # 农夫山泉
-        # self.names.append("greentea")
         for name in self.names:
             self.result.append([name, 0, 0, 0, 0, 0])
             model = dn('yolo6D/yolo-pose.cfg')
@@ -374,8 +396,23 @@ class Ui_MainWindow(object):
     def save_result(self):
         f = open('东南大学-LabVIEW-R%s.txt' % self.round, 'w+')
         f.write('START\n')
+        i = 0
+        while(i < len(self.result)):
+            if len(self.result[i][0]) > 5:  # 非一对一数据集
+                origin = index2(self.result, self.result[i][0][0:5])  # 找到原数据集索引
+                if origin == -1:  # 未找到，这种情况不应该出现才对
+                    self.result[i][0] = self.result[i][0][0:5]  # 修改为正常输出
+                else:
+                    if self.result[origin][1] < self.result[i][1]:  # 原数据集置信度不够高
+                        self.result[origin] = self.result[i]  # 直接覆盖
+                        self.result[origin][0] = self.result[origin][0][0:5]
+                    del self.result[i]  # 删除该结果
+                    i -= 1
+            i += 1
         if self.isSquare:
             for res in self.result:
+                if res[1] == 0:  # 无有效识别
+                    continue
                 f.write('GOAL_ID=%s;' % res[0])
                 f.write('GOAL_X=%.1f;' % (res[2] / res[1]))
                 f.write('GOAL_Y=%.1f;' % (res[3] / res[1]))
@@ -383,12 +420,15 @@ class Ui_MainWindow(object):
                 res[1] = res[2] = res[3] = res[4] = res[5] = 0
         else:
             for res in self.result:
+                if res[1] == 0:  # 无有效识别
+                    continue
                 f.write('GOAL_ID=%s;' % res[0])
                 f.write('GOAL_Radius=%.1f\n' % (res[4] / res[1]))
                 res[1] = res[2] = res[3] = res[4] = res[5] = 0
         f.write('END')
         print('    \33[0;32m第%s回合结果已保存\033[0m' % self.round)
         self.round += 1
+        f.close()
 
     def open_camera(self, camera):
         if self.timer_camera.isActive() == False:
@@ -470,9 +510,9 @@ class Ui_MainWindow(object):
                 points = [bs[3], bs[4], bs[7], bs[8]]
             elif data[0][0] == 'ZA004' or data[0][0] == 'ZB005' or data[0][0] == 'ZB001' or data[0][0] == 'ZC010' or data[0][0] == 'ZC013' or data[0][0] == 'ZC014':
                 points = [bs[2], bs[4], bs[6], bs[8]]
-            elif data[0][0] == 'ZA002' or data[0][0] == 'ZB008' or data[0][0] == 'ZB009' or data[0][0] == 'ZC005' or data[0][0] == 'ZC006' or data[0][0] == 'ZC012':
+            elif data[0][0] == 'ZA002' or data[0][0] == 'ZB002' or data[0][0] == 'ZB008' or data[0][0] == 'ZB009' or data[0][0] == 'ZC005' or data[0][0] == 'ZC006' or data[0][0] == 'ZC012':
                 points = [bs[1], bs[3], bs[5], bs[7]]
-            elif data[0][0] == 'ZB003':
+            elif data[0][0] == 'ZB003' or data[0][0] == 'ZA001h2':
                 points = [bs[1], bs[2], bs[3], bs[4]]
             elif data[0][0] == 'ZB007':
                 points = [bs[5], bs[6], bs[7], bs[8]]
@@ -513,21 +553,23 @@ class Ui_MainWindow(object):
             for res in self.result:
                 if data[0][0] == res[0]:  # 名称一致
                     if self.isSquare:
-                        if (float(data[1]) >= 55 or float(data[1]) <= 0 or float(data[2]) >= 55 or float(data[2]) <= 0):
+                        if (float(data[1]) >= 55 or float(data[1]) <= 0 or float(data[2]) >= 55 or float(data[2]) <= 0):  # 错误识别
                             continue
-                        res[1] += float(data[0][1].strip('%')) / 100  # 置信度之和
-                        res[2] += float(data[1]) * float(data[0]
-                                                         [1].strip('%')) / 100  # x之和
-                        res[3] += float(data[2]) * float(data[0]
-                                                         [1].strip('%')) / 100  # y之和
-                        res[5] += float(data[4]) * float(data[0]
-                                                         [1].strip('%')) / 100  # a之和
+                        trust = float(data[0][1].strip('%'))  # 置信度
+                        if trust < 10:  # 低劣识别
+                            continue
+                        res[1] += trust / 100  # 置信度之和
+                        res[2] += float(data[1]) * trust / 100  # x之和
+                        res[3] += float(data[2]) * trust / 100  # y之和
+                        res[5] += float(data[4]) * trust / 100  # a之和
                     else:
                         if float(data[3]) >= 30:  # 错误识别
                             continue
-                        res[1] += float(data[0][1].strip('%')) / 100  # 置信度之和
-                        res[4] += float(data[3]) * float(data[0]
-                                                         [1].strip('%')) / 100  # r之和
+                        trust = float(data[0][1].strip('%'))  # 置信度
+                        if trust < 10:  # 低劣识别
+                            continue
+                        res[1] += trust / 100  # 置信度之和
+                        res[4] += float(data[3]) * trust / 100  # r之和
 
     def close_camera(self, camera):
         if self.timer_camera.isActive():
