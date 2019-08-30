@@ -255,10 +255,10 @@ class Ui_Form(object):
         ho[2] = self.lineEdit_12.text()
         img = corner.thres(self.img, self.x)
         thresed = corner.remove_small_objects(img)
-        # edges = corner.square_canny(thresed, ca)
+        # edges = corner.square_canny(thresed, ca) # 方桌检测
         # cv2.imshow('edges', edges)
         # lined, Table_2D = corner.square_line(self.img, edges, ho)
-        lined, _, Circle_2D = circle_fit.circle_line(self.img, thresed)
+        lined, _, Circle_2D = circle_fit.circle_line(self.img, thresed) # 圆桌检测
         cv2.imshow('lines', lined)
 
         f = open("data2.txt", "w+")

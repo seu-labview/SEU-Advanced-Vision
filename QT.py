@@ -291,19 +291,19 @@ class Ui_MainWindow(object):
         print("\033[0;32m相机初始化完成\033[0m")
         self.thread_init()
         print("\033[0;32m多线程初始化完成\033[0m")
-        # self.names.append("ZA001")  # 舒肤佳
+        self.names.append("ZA001")  # 舒肤佳
         # self.names.append("ZA001v")
-        # self.names.append("ZA001h1")
+        self.names.append("ZA001h1")
         # self.names.append("ZA001h2")
         # self.names.append("ZA002")  # 洗手液
         # self.names.append("ZA003")  # 牙膏
-        # self.names.append("ZA004")  # 花露水
+        self.names.append("ZA004")  # 花露水
         # self.names.append("ZA005")  # 鸭子
-        # self.names.append("ZB001")  # 八宝粥
+        self.names.append("ZB001")  # 八宝粥
         # self.names.append("ZB002")  # 辣酱
         # self.names.append("ZB003")  # 曲奇
         # self.names.append("ZB004")  # 果珍
-        self.names.append("ZB005")  # 绿箭
+        # self.names.append("ZB005")  # 绿箭
         # self.names.append("ZB006")  # 面
         # self.names.append("ZB006r")
         # self.names.append("ZB007")  # 太平饼干
@@ -313,7 +313,7 @@ class Ui_MainWindow(object):
         # self.names.append("ZB009r")
         # self.names.append("ZB010")  # 瓜子
         # self.names.append("ZC004")  # 红牛
-        # self.names.append("ZC005")  # AD奶
+        self.names.append("ZC005")  # AD奶
         # self.names.append("ZC006")  # 橙汁
         # self.names.append("ZC008")  # 加多宝
         # self.names.append("ZC009")  # 冰红茶
@@ -323,8 +323,8 @@ class Ui_MainWindow(object):
         # self.names.append("ZC011h")
         # self.names.append("ZC012")  # 茶π
         # self.names.append("ZC012h")
-        # self.names.append("ZC013")  # 椰奶
-        # self.names.append("ZC014")  # 农夫山泉
+        self.names.append("ZC013")  # 椰奶
+        self.names.append("ZC014")  # 农夫山泉
         for name in self.names:
             self.result.append([name, 0, 0, 0, 0, 0])
             model = dn('yolo6D/yolo-pose.cfg')
@@ -413,17 +413,17 @@ class Ui_MainWindow(object):
             for res in self.result:
                 if res[1] == 0:  # 无有效识别
                     continue
-                f.write('GOAL_ID=%s;' % res[0])
-                f.write('GOAL_X=%.1f;' % (res[2] / res[1]))
-                f.write('GOAL_Y=%.1f;' % (res[3] / res[1]))
-                f.write('GOAL_Angle=%.1f\n' % (res[5] / res[1]))
+                f.write('Goal_ID=%s;' % res[0])
+                f.write('Goal_X=%.1f;' % (res[2] / res[1]))
+                f.write('Goal_Y=%.1f;' % (res[3] / res[1]))
+                f.write('Goal_Angle=%.1f\n' % (res[5] / res[1]))
                 res[1] = res[2] = res[3] = res[4] = res[5] = 0
         else:
             for res in self.result:
                 if res[1] == 0:  # 无有效识别
                     continue
-                f.write('GOAL_ID=%s;' % res[0])
-                f.write('GOAL_Radius=%.1f\n' % (res[4] / res[1]))
+                f.write('Goal_ID=%s;' % res[0])
+                f.write('Goal_Radius=%.1f\n' % (res[4] / res[1]))
                 res[1] = res[2] = res[3] = res[4] = res[5] = 0
         f.write('END')
         print('    \33[0;32m第%s回合结果已保存\033[0m' % self.round)

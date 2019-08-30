@@ -79,7 +79,8 @@ def circle_line(origin, thresed, S_thre=(100000, 600000)):
     # ret, thresh = cv2.threshold(imgray, 127, 255, cv2.THRESH_BINARY)
     # cv2.imshow("thres", thresh)
     # image, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    _, contours, _ = cv2.findContours(thresed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    # _, contours, _ = cv2.findContours(thresed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(thresed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     top = []; bottle = []; right = []; left = []; center = []
     Circle_2D = []
     last_longest = 4
@@ -141,6 +142,7 @@ def circle_desk(num, x, canny, hough):
     thresed = corner.thres(img, x)
     thresed_new = corner.remove_small_objects(thresed)
     lined, _, Circle_2D = circle_line(img, thresed_new, [100000, 600000])
+    # lined, _, Circle_2D = circle_line(img, thresed_new, [100000, 800000])
     # affine_table_2D = np.float32([[0,0],[0,550],[550,0],[550,550]])
     # M = cv2.getPerspectiveTransform(Table_2D,affine_table_2D)
     # marked = cv2.warpPerspective(lined,M,(550,550)) # Perspective_Transformation
