@@ -296,23 +296,23 @@ class Ui_MainWindow(object):
         # self.names.append("ZA001h1")
         # self.names.append("ZA001h2")
         # self.names.append("ZA002")  # 洗手液
-        # self.names.append("ZA003")  # 牙膏
+        self.names.append("ZA003")  # 牙膏
         # self.names.append("ZA004")  # 花露水
         # self.names.append("ZA005")  # 鸭子
         # self.names.append("ZB001")  # 八宝粥
-        # self.names.append("ZB002")  # 辣酱
+        self.names.append("ZB002")  # 辣酱
         # self.names.append("ZB003")  # 曲奇
-        # self.names.append("ZB004")  # 果珍
-        self.names.append("ZB005")  # 绿箭
+        self.names.append("ZB004")  # 果珍
+        # self.names.append("ZB005")  # 绿箭
         # self.names.append("ZB006")  # 面
-        # self.names.append("ZB006r")
-        # self.names.append("ZB007")  # 太平饼干
-        # self.names.append("ZB007r")
+        self.names.append("ZB006r")
+        self.names.append("ZB007")  # 太平饼干
+        self.names.append("ZB007r")
         # self.names.append("ZB008")  # 可比克
         # self.names.append("ZB009")  # 乐事
         # self.names.append("ZB009r")
         # self.names.append("ZB010")  # 瓜子
-        # self.names.append("ZC004")  # 红牛
+        self.names.append("ZC004")  # 红牛
         # self.names.append("ZC005")  # AD奶
         # self.names.append("ZC006")  # 橙汁
         # self.names.append("ZC008")  # 加多宝
