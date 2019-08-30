@@ -292,7 +292,7 @@ class Ui_MainWindow(object):
         self.thread_init()
         print("\033[0;32m多线程初始化完成\033[0m")
         self.names.append("ZA001")  # 舒肤佳
-        # self.names.append("ZA001v")
+        self.names.append("ZA001v")
         self.names.append("ZA001h1")
         # self.names.append("ZA001h2")
         # self.names.append("ZA002")  # 洗手液
