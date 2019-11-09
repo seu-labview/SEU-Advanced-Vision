@@ -1,5 +1,11 @@
 # SEU-Advanced-Vision
 
+本项目主要实现使用 *Realsense SR300相机* 对置于静态、动态桌面上的物品进行识别、位姿定位。
+
+<!--以下是参加2019中国机器人大赛先进视觉组时录制的技术报告视频：
+
+![](https://github.com/seu-labview/SEU-Advanced-Vision/releases/download/v1.8.15/Labview.mp4)-->
+
 ## 算法
 
 ### LINEMOD 数据集制作
@@ -34,7 +40,7 @@
 
 使用时，将`LINEMOD`文件夹置于本项目根目录
 
-##  安装PyTorch对应版本
+<!--##  安装PyTorch对应版本
 通过JetPack安装CUDA和CUDNN后记得重新启动
 
 Pytorch 根据对应cuda有不同的版本
@@ -55,4 +61,4 @@ please using
 
 *print(torch.cuda.is_available())* 
 
-to detect whether pytorch could use cuda
+to detect whether pytorch could use cuda-->
