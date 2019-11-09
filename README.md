@@ -4,7 +4,7 @@
 
 以下是参加2019中国机器人大赛先进视觉组时录制的技术报告视频：
 
-<iframe src="//player.bilibili.com/player.html?aid=75071146&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+[![watch the video](http://i1.hdslb.com/bfs/archive/5f6a1130e670acfd39638ab3b7d41142f780ff18.jpg)](https://www.bilibili.com/video/av75071146/ "bilibili")
 
 ## 算法
 
