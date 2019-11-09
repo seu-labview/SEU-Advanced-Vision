@@ -2,9 +2,9 @@
 
 本项目主要实现使用 *Realsense SR300相机* 对置于静态、动态桌面上的物品进行识别、位姿定位。
 
-<!--以下是参加2019中国机器人大赛先进视觉组时录制的技术报告视频：
+以下是参加2019中国机器人大赛先进视觉组时录制的技术报告视频：
 
-![](https://github.com/seu-labview/SEU-Advanced-Vision/releases/download/v1.8.15/Labview.mp4)-->
+<iframe src="//player.bilibili.com/player.html?aid=75071146&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
 
 ## 算法
 
