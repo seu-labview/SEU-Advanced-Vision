@@ -420,7 +420,7 @@ class Ui_MainWindow(object):
                 res[1] = res[2] = res[3] = res[4] = res[5] = 0
         else:
             for res in self.result:
-                if res[1] == 0:  # 无有效识别
+                if res[1] == 0:  # 无有效识别设定不同的底部四点（看预测输出照片
                     continue
                 f.write('Goal_ID=%s;' % res[0])
                 f.write('Goal_Radius=%.1f\n' % (res[4] / res[1]))
@@ -499,7 +499,8 @@ class Ui_MainWindow(object):
             datas.append([ret[num_done]])  # 名称，置信度
             num_done += 1
             if num_done is len(self.names):
-                break
+                break 
+            '''设定不同的底部四点（看预测输出照片'''
 
         for bs, data in zip(bss, datas):
             # 根据不同的物品模型，设定不同的底部四点（看预测输出照片可知）
